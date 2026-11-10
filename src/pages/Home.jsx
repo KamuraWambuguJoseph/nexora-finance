@@ -115,193 +115,24 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Features with Real Images */}
+      {/* Features */}
       <section className="max-w-6xl mx-auto px-6 py-16">
-        <h2 className="text-3xl font-bold text-center mb-12">Powerful Features</h2>
-        <div className="grid md:grid-cols-2 gap-12 items-center mb-12">
-          {/* Real Dashboard Screenshot Mockup */}
-          <div className="relative">
-            <div className="rounded-2xl border border-slate-800 dark:border-slate-200 overflow-hidden shadow-2xl">
-              <div className="bg-gradient-to-b from-slate-900 to-slate-950 dark:from-white dark:to-slate-50 p-4">
-                <p className="text-xs text-slate-400 dark:text-slate-600 mb-3 font-mono">Dashboard Analytics</p>
-                <div className="space-y-3">
-                  <div className="h-20 bg-gradient-to-r from-emerald-600 to-emerald-700 dark:from-emerald-500 dark:to-emerald-600 rounded-lg opacity-90"></div>
-                  <div className="grid grid-cols-3 gap-2">
-                    <div className="h-16 bg-slate-800 dark:bg-slate-200 rounded opacity-75"></div>
-                    <div className="h-16 bg-slate-800 dark:bg-slate-200 rounded opacity-75"></div>
-                    <div className="h-16 bg-slate-800 dark:bg-slate-200 rounded opacity-75"></div>
-                  </div>
-                </div>
-              </div>
+        <h2 className="text-3xl font-bold text-center mb-12">Why Choose Nexora?</h2>
+        <div className="grid md:grid-cols-3 gap-8">
+          {[
+            { icon: '🔒', title: 'Secure', desc: 'Your assets are protected with enterprise-grade security.' },
+            { icon: '💰', title: 'High Returns', desc: 'Earn up to 25% ROI on your investments.' },
+            { icon: '⚡', title: 'Fast', desc: 'Instant deposits and withdrawals anytime, anywhere.' },
+            { icon: '🌍', title: 'Global', desc: 'Available in 13 languages for worldwide users.' },
+            { icon: '👥', title: 'Referrals', desc: 'Earn 3% commission on every referral deposit.' },
+            { icon: '📱', title: 'Easy to Use', desc: 'Simple, intuitive interface anyone can master.' },
+          ].map((feature, i) => (
+            <div key={i} className="p-6 rounded-xl border border-slate-800 dark:border-slate-200 bg-slate-900/50 dark:bg-white/50 hover:border-emerald-500 dark:hover:border-emerald-600 transition">
+              <div className="text-4xl mb-3">{feature.icon}</div>
+              <h3 className="font-bold text-lg mb-2">{feature.title}</h3>
+              <p className="text-slate-400 dark:text-slate-600 text-sm">{feature.desc}</p>
             </div>
-            <div className="absolute -bottom-6 -right-6 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl"></div>
-          </div>
-
-          {/* Features List */}
-          <div className="space-y-4">
-            {[
-              { icon: '📊', title: 'Real-time Analytics', desc: 'Live portfolio tracking with interactive charts' },
-              { icon: '🤖', title: 'AI Recommendations', desc: 'Smart investment suggestions based on market trends' },
-              { icon: '🔒', title: 'Bank-level Security', desc: 'Military-grade encryption for all transactions' },
-              { icon: '⚡', title: 'Instant Transactions', desc: 'Deposits & withdrawals processed in seconds' },
-              { icon: '🌍', title: 'Global Access', desc: 'Available in 13 languages worldwide' },
-              { icon: '📱', title: 'Mobile-First Design', desc: 'Beautiful, responsive interface for all devices' },
-            ].map((feature, i) => (
-              <div key={i} className="flex gap-4 p-4 rounded-lg border border-slate-800 dark:border-slate-200 bg-slate-900/50 dark:bg-white/50 hover:border-emerald-500 dark:hover:border-emerald-600 transition">
-                <div className="text-3xl flex-shrink-0">{feature.icon}</div>
-                <div>
-                  <h4 className="font-bold mb-1">{feature.title}</h4>
-                  <p className="text-sm text-slate-400 dark:text-slate-600">{feature.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Investment Plans Showcase */}
-        <div className="mt-16">
-          <h2 className="text-3xl font-bold text-center mb-12">Investment Opportunities</h2>
-          <div className="grid md:grid-cols-3 gap-8">
-            {[
-              {
-                name: 'Starter',
-                roi: '8%',
-                days: '7',
-                min: '$100',
-                icon: '🌱',
-                color: 'from-emerald-500 to-teal-600'
-              },
-              {
-                name: 'Growth',
-                roi: '15%',
-                days: '14',
-                min: '$1,000',
-                icon: '📈',
-                color: 'from-sky-500 to-indigo-600',
-                popular: true
-              },
-              {
-                name: 'Premium',
-                roi: '25%',
-                days: '30',
-                min: '$5,000',
-                icon: '💎',
-                color: 'from-amber-500 to-orange-600'
-              },
-            ].map((plan, i) => (
-              <div key={i} className={`relative p-8 rounded-2xl border transition overflow-hidden ${
-                plan.popular
-                  ? 'border-emerald-500 dark:border-emerald-600 bg-emerald-500/10 dark:bg-emerald-600/10 transform md:scale-105'
-                  : 'border-slate-800 dark:border-slate-200 bg-slate-900/50 dark:bg-white/50'
-              }`}>
-                {plan.popular && (
-                  <div className="absolute top-4 right-4 px-3 py-1 rounded-full bg-emerald-500 dark:bg-emerald-600 text-white text-xs font-bold">
-                    POPULAR
-                  </div>
-                )}
-                <div className="text-4xl mb-4">{plan.icon}</div>
-                <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
-                <div className="text-4xl font-black text-emerald-400 dark:text-emerald-600 mb-2">{plan.roi}</div>
-                <p className="text-sm text-slate-400 dark:text-slate-600 mb-4">{plan.days} day cycle • Min {plan.min}</p>
-                <button className={`w-full py-3 rounded-lg font-semibold transition ${
-                  plan.popular
-                    ? 'bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white'
-                    : 'bg-slate-800 dark:bg-slate-200 hover:bg-slate-700 dark:hover:bg-slate-300 text-white dark:text-slate-900'
-                }`}>
-                  Invest Now
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* AI Analytics Showcase */}
-      <section className="max-w-6xl mx-auto px-6 py-16">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold mb-4">AI-Powered Investment Intelligence</h2>
-          <p className="text-slate-400 dark:text-slate-600">Smart analytics and real-time insights to maximize your returns</p>
-        </div>
-
-        <div className="grid md:grid-cols-2 gap-8 items-center">
-          {/* Left: Features */}
-          <div className="space-y-6">
-            {[
-              { icon: '📊', title: 'Live Portfolio Analytics', desc: 'Real-time charts and performance tracking' },
-              { icon: '🤖', title: 'AI Recommendations', desc: 'Smart suggestions based on market trends' },
-              { icon: '💡', title: 'Market Insights', desc: 'Daily crypto market analysis and signals' },
-              { icon: '⚡', title: 'Instant Alerts', desc: 'Get notified about price changes instantly' },
-            ].map((item, i) => (
-              <div key={i} className="p-4 rounded-lg border border-slate-800 dark:border-slate-200 bg-slate-900/50 dark:bg-white/50 hover:border-emerald-500 dark:hover:border-emerald-600 transition">
-                <div className="flex items-start gap-4">
-                  <div className="text-3xl">{item.icon}</div>
-                  <div>
-                    <h4 className="font-bold mb-1">{item.title}</h4>
-                    <p className="text-sm text-slate-400 dark:text-slate-600">{item.desc}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Right: Dashboard Preview */}
-          <div className="relative">
-            <div className="bg-gradient-to-br from-blue-600 to-blue-900 dark:from-blue-400 dark:to-blue-600 rounded-2xl p-8 shadow-2xl">
-              {/* Phone-like container */}
-              <div className="bg-slate-900 dark:bg-slate-100 rounded-3xl p-1 shadow-xl">
-                <div className="bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 dark:from-white dark:via-slate-50 dark:to-white rounded-3xl p-6 overflow-hidden">
-                  {/* Header */}
-                  <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-800 dark:border-slate-200">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-blue-500 flex items-center justify-center text-white font-bold text-sm">J</div>
-                      <div>
-                        <p className="text-sm font-bold text-white dark:text-slate-900">Joseph Kamura</p>
-                        <p className="text-xs text-slate-500 dark:text-slate-500">Premium Investor</p>
-                      </div>
-                    </div>
-                    <div className="text-2xl">📈</div>
-                  </div>
-
-                  {/* Portfolio Stats */}
-                  <div className="space-y-4">
-                    <div className="bg-gradient-to-r from-emerald-600 to-emerald-700 dark:from-emerald-500 dark:to-emerald-600 rounded-xl p-4">
-                      <p className="text-sm text-emerald-100 mb-1">Portfolio Value</p>
-                      <p className="text-2xl font-bold text-white">$52,800.50</p>
-                      <p className="text-xs text-emerald-100 mt-2">↑ 12.5% this month</p>
-                    </div>
-
-                    {/* Mini Charts */}
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="bg-slate-800 dark:bg-slate-200 rounded-lg p-3">
-                        <p className="text-xs text-slate-400 dark:text-slate-600 mb-2">24h Return</p>
-                        <p className="text-lg font-bold text-emerald-400 dark:text-emerald-600">+$450</p>
-                        <div className="text-xs text-emerald-400 dark:text-emerald-600">+6.4%</div>
-                      </div>
-                      <div className="bg-slate-800 dark:bg-slate-200 rounded-lg p-3">
-                        <p className="text-xs text-slate-400 dark:text-slate-600 mb-2">AI Rating</p>
-                        <p className="text-lg font-bold text-blue-400 dark:text-blue-600">9.2/10</p>
-                        <div className="text-xs text-blue-400 dark:text-blue-600">Excellent</div>
-                      </div>
-                    </div>
-
-                    {/* Quick Actions */}
-                    <div className="grid grid-cols-3 gap-2 pt-2">
-                      <button className="py-2 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium transition">Invest</button>
-                      <button className="py-2 px-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium transition">Withdraw</button>
-                      <button className="py-2 px-3 rounded-lg bg-slate-700 dark:bg-slate-300 text-white dark:text-slate-900 text-xs font-medium transition">Details</button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Floating AI Badge */}
-            <div className="absolute -top-6 -right-6 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full p-4 shadow-lg">
-              <div className="flex items-center justify-center w-16 h-16 bg-blue-500 rounded-full">
-                <span className="text-2xl font-black">AI</span>
-              </div>
-            </div>
-          </div>
+          ))}
         </div>
       </section>
 
