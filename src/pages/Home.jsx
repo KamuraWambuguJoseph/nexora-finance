@@ -82,6 +82,95 @@ export default function Home() {
         </div>
       </section>
 
+      {/* AI Analytics Showcase */}
+      <section className="max-w-6xl mx-auto px-6 py-16">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-bold mb-4">AI-Powered Investment Intelligence</h2>
+          <p className="text-slate-400 dark:text-slate-600">Smart analytics and real-time insights to maximize your returns</p>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-8 items-center">
+          {/* Left: Features */}
+          <div className="space-y-6">
+            {[
+              { icon: '📊', title: 'Live Portfolio Analytics', desc: 'Real-time charts and performance tracking' },
+              { icon: '🤖', title: 'AI Recommendations', desc: 'Smart suggestions based on market trends' },
+              { icon: '💡', title: 'Market Insights', desc: 'Daily crypto market analysis and signals' },
+              { icon: '⚡', title: 'Instant Alerts', desc: 'Get notified about price changes instantly' },
+            ].map((item, i) => (
+              <div key={i} className="p-4 rounded-lg border border-slate-800 dark:border-slate-200 bg-slate-900/50 dark:bg-white/50 hover:border-emerald-500 dark:hover:border-emerald-600 transition">
+                <div className="flex items-start gap-4">
+                  <div className="text-3xl">{item.icon}</div>
+                  <div>
+                    <h4 className="font-bold mb-1">{item.title}</h4>
+                    <p className="text-sm text-slate-400 dark:text-slate-600">{item.desc}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Right: Dashboard Preview */}
+          <div className="relative">
+            <div className="bg-gradient-to-br from-blue-600 to-blue-900 dark:from-blue-400 dark:to-blue-600 rounded-2xl p-8 shadow-2xl">
+              {/* Phone-like container */}
+              <div className="bg-slate-900 dark:bg-slate-100 rounded-3xl p-1 shadow-xl">
+                <div className="bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 dark:from-white dark:via-slate-50 dark:to-white rounded-3xl p-6 overflow-hidden">
+                  {/* Header */}
+                  <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-800 dark:border-slate-200">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-blue-500 flex items-center justify-center text-white font-bold text-sm">J</div>
+                      <div>
+                        <p className="text-sm font-bold text-white dark:text-slate-900">Joseph Kamura</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-500">Premium Investor</p>
+                      </div>
+                    </div>
+                    <div className="text-2xl">📈</div>
+                  </div>
+
+                  {/* Portfolio Stats */}
+                  <div className="space-y-4">
+                    <div className="bg-gradient-to-r from-emerald-600 to-emerald-700 dark:from-emerald-500 dark:to-emerald-600 rounded-xl p-4">
+                      <p className="text-sm text-emerald-100 mb-1">Portfolio Value</p>
+                      <p className="text-2xl font-bold text-white">$52,800.50</p>
+                      <p className="text-xs text-emerald-100 mt-2">↑ 12.5% this month</p>
+                    </div>
+
+                    {/* Mini Charts */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="bg-slate-800 dark:bg-slate-200 rounded-lg p-3">
+                        <p className="text-xs text-slate-400 dark:text-slate-600 mb-2">24h Return</p>
+                        <p className="text-lg font-bold text-emerald-400 dark:text-emerald-600">+$450</p>
+                        <div className="text-xs text-emerald-400 dark:text-emerald-600">+6.4%</div>
+                      </div>
+                      <div className="bg-slate-800 dark:bg-slate-200 rounded-lg p-3">
+                        <p className="text-xs text-slate-400 dark:text-slate-600 mb-2">AI Rating</p>
+                        <p className="text-lg font-bold text-blue-400 dark:text-blue-600">9.2/10</p>
+                        <div className="text-xs text-blue-400 dark:text-blue-600">Excellent</div>
+                      </div>
+                    </div>
+
+                    {/* Quick Actions */}
+                    <div className="grid grid-cols-3 gap-2 pt-2">
+                      <button className="py-2 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium transition">Invest</button>
+                      <button className="py-2 px-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium transition">Withdraw</button>
+                      <button className="py-2 px-3 rounded-lg bg-slate-700 dark:bg-slate-300 text-white dark:text-slate-900 text-xs font-medium transition">Details</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Floating AI Badge */}
+            <div className="absolute -top-6 -right-6 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full p-4 shadow-lg">
+              <div className="flex items-center justify-center w-16 h-16 bg-blue-500 rounded-full">
+                <span className="text-2xl font-black">AI</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Investment Plans */}
       <section className="max-w-6xl mx-auto px-6 py-16">
         <h2 className="text-3xl font-bold text-center mb-12">Investment Plans</h2>

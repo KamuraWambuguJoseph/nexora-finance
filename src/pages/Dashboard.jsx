@@ -272,12 +272,12 @@ export default function Dashboard() {
           </div>
         </div>
         {/* tabs */}
-        <div className="mx-auto flex max-w-6xl gap-1 px-6">
+        <div className="mx-auto flex max-w-6xl gap-1 px-6 overflow-x-auto pb-2">
           {['overview', 'deposit', 'invest', 'withdraw', 'referral', 'history'].map((tabKey) => (
             <button
               key={tabKey}
               onClick={() => { setTab(tabKey); setError(''); setNotice('') }}
-              className={`relative px-4 py-2.5 text-sm font-medium capitalize transition
+              className={`relative px-4 py-2.5 text-sm font-medium capitalize transition whitespace-nowrap
                 ${tab === tabKey ? 'text-emerald-400' : 'text-slate-400 hover:text-slate-200'}`}
             >
               {t(`nav.${tabKey}`)}
@@ -286,6 +286,12 @@ export default function Dashboard() {
               )}
             </button>
           ))}
+          <button
+            onClick={() => navigate('/ai-assistant')}
+            className="relative px-4 py-2.5 text-sm font-medium capitalize transition text-slate-400 hover:text-sky-400 whitespace-nowrap ml-auto"
+          >
+            🤖 AI Advisor
+          </button>
         </div>
       </header>
 
@@ -304,6 +310,7 @@ export default function Dashboard() {
         {/* ============ OVERVIEW ============ */}
         {tab === 'overview' && (
           <>
+            {/* Portfolio Stats */}
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {[
                 [t('dashboard.balance'), available, 'text-emerald-400'],
@@ -311,14 +318,86 @@ export default function Dashboard() {
                 [t('dashboard.investments'), activeInvested, 'text-sky-400'],
                 [t('dashboard.projected'), expectedReturn, 'text-white'],
               ].map(([label, value, cls]) => (
-                <div key={label} className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
+                <div key={label} className="rounded-2xl border border-slate-800 bg-slate-900 p-5 hover:border-slate-700 transition">
                   <p className="text-xs uppercase tracking-wider text-slate-500">{label}</p>
                   <p className={`mt-2 text-2xl font-bold ${cls}`}>{money(value)}</p>
                 </div>
               ))}
             </div>
 
-            <div className="mt-6 grid gap-4 lg:grid-cols-2">
+            {/* AI Analytics & Performance */}
+            <div className="mt-8 grid gap-6 lg:grid-cols-3">
+              {/* AI Assistant Card */}
+              <div className="lg:col-span-1 rounded-2xl border border-blue-800 bg-gradient-to-br from-blue-950 to-blue-900 p-6 shadow-lg">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <p className="text-sm uppercase tracking-wider text-blue-400 font-semibold">AI Assistant</p>
+                    <p className="text-2xl font-bold text-white mt-2">Smart Insights</p>
+                  </div>
+                  <div className="text-4xl">🤖</div>
+                </div>
+                <div className="space-y-3 mt-6">
+                  <div className="bg-blue-900/50 rounded-lg p-3">
+                    <p className="text-xs text-blue-300 mb-1">Portfolio Health</p>
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 h-2 bg-blue-900 rounded-full overflow-hidden">
+                        <div className="h-full bg-emerald-400" style={{width: '85%'}}></div>
+                      </div>
+                      <span className="text-sm font-bold text-emerald-400">85%</span>
+                    </div>
+                  </div>
+                  <div className="bg-blue-900/50 rounded-lg p-3">
+                    <p className="text-xs text-blue-300 mb-1">Monthly Trend</p>
+                    <p className="text-lg font-bold text-emerald-400">↑ +12.5%</p>
+                  </div>
+                  <button className="w-full mt-4 py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition text-sm">
+                    View Full Analysis
+                  </button>
+                </div>
+              </div>
+
+              {/* Performance Chart Placeholder */}
+              <div className="lg:col-span-2 rounded-2xl border border-slate-800 bg-slate-900 p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="font-bold text-lg">Portfolio Performance</h3>
+                  <div className="flex gap-2">
+                    <button className="px-3 py-1 text-xs rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 transition">7D</button>
+                    <button className="px-3 py-1 text-xs rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">30D</button>
+                    <button className="px-3 py-1 text-xs rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 transition">1Y</button>
+                  </div>
+                </div>
+
+                {/* Simple Sparkline-like visualization */}
+                <div className="h-48 flex flex-col justify-end gap-1 items-end pr-2">
+                  {[45, 52, 48, 65, 72, 85, 78, 92, 88, 95].map((height, i) => (
+                    <div key={i} className="flex items-end gap-1 w-full">
+                      <div className="text-xs text-slate-500 text-right w-12">{i === 0 ? '$' + (confirmedDeposits * 0.5).toFixed(0) : ''}</div>
+                      <div
+                        className="flex-1 bg-gradient-to-t from-emerald-500 to-sky-500 rounded-t-lg transition-all hover:opacity-80"
+                        style={{ height: `${height}px` }}
+                      ></div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-4 grid grid-cols-3 gap-4 text-center border-t border-slate-800 pt-4">
+                  <div>
+                    <p className="text-xs text-slate-400">Avg Daily</p>
+                    <p className="text-lg font-bold text-emerald-400">+${(Math.random() * 500 + 100).toFixed(0)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-400">Peak Value</p>
+                    <p className="text-lg font-bold text-sky-400">{money(expectedReturn * 1.15)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-400">This Month</p>
+                    <p className="text-lg font-bold text-emerald-400">+12.5%</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-8 grid gap-4 lg:grid-cols-2">
               <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
                 <div className="mb-4 flex items-center justify-between">
                   <h2 className="font-semibold">Active investments</h2>
