@@ -33,7 +33,23 @@ export const PLANS = [
   },
 ]
 
-// GET /api/investments/plans — list available plans
+// GET /api/investments/programs - Get all investment programs from database
+router.get('/programs', async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT id, program_name, minimum_amount, duration_days, roi_percent
+       FROM investment_programs
+       WHERE is_active = true
+       ORDER BY minimum_amount ASC`
+    )
+    res.json({ programs: result.rows })
+  } catch (err) {
+    console.error('Fetch programs error:', err.message)
+    res.status(500).json({ error: 'Failed to fetch programs' })
+  }
+})
+
+// GET /api/investments/plans — list available plans (legacy)
 router.get('/plans', auth, (_req, res) => {
   res.json({ plans: PLANS })
 })

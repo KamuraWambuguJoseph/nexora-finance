@@ -8,6 +8,7 @@ import Dashboard from './pages/Dashboard.jsx'
 import AdminDashboard from './pages/AdminDashboard.jsx'
 import Referral from './pages/Referral.jsx'
 import Home from './pages/Home.jsx'
+import Investments from './pages/Investments.jsx'
 import LanguageSwitcher from './components/LanguageSwitcher.jsx'
 import LanguageSelector from './components/LanguageSelector.jsx'
 import SettingsMenu from './components/SettingsMenu.jsx'
@@ -29,6 +30,7 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/investments" element={<Investments />} />
         <Route path="/referral" element={<Referral />} />
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="*" element={<Navigate to="/" replace />} />
