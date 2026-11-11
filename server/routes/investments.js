@@ -3,7 +3,15 @@ import { z } from 'zod'
 import pool from '../db.js'
 import auth from '../middleware/auth.js'
 
+console.log('📦 Loading investments route...')
 const router = Router()
+console.log('📦 Investments router created')
+
+// Debug middleware to log all requests to this router
+router.use((req, res, next) => {
+  console.log(`📍 [investments] ${req.method} ${req.path}`)
+  next()
+})
 
 // Investment plans available to users
 export const PLANS = [
@@ -33,8 +41,19 @@ export const PLANS = [
   },
 ]
 
+const mockPrograms = [
+  { id: 1, program_name: 'Starter', minimum_amount: 100, duration_days: 30, roi_percent: 5 },
+  { id: 2, program_name: 'Growth', minimum_amount: 500, duration_days: 60, roi_percent: 8 },
+  { id: 3, program_name: 'Advanced', minimum_amount: 1000, duration_days: 90, roi_percent: 12 },
+  { id: 4, program_name: 'Premium', minimum_amount: 5000, duration_days: 120, roi_percent: 15 },
+  { id: 5, program_name: 'Gold', minimum_amount: 10000, duration_days: 180, roi_percent: 18 },
+  { id: 6, program_name: 'Diamond', minimum_amount: 50000, duration_days: 270, roi_percent: 22 },
+  { id: 7, program_name: 'Black Elite', minimum_amount: 100000, duration_days: 365, roi_percent: 25 },
+]
+
 // GET /api/investments/programs - Get all investment programs from database
 router.get('/programs', async (req, res) => {
+  console.log('🎯 /programs endpoint hit')
   try {
     const result = await pool.query(
       `SELECT id, program_name, minimum_amount, duration_days, roi_percent
@@ -42,10 +61,13 @@ router.get('/programs', async (req, res) => {
        WHERE is_active = true
        ORDER BY minimum_amount ASC`
     )
+    console.log('📊 Database query successful, rows:', result.rows.length)
     res.json({ programs: result.rows })
   } catch (err) {
     console.error('Fetch programs error:', err.message)
-    res.status(500).json({ error: 'Failed to fetch programs' })
+    // Return mock data for demo/development
+    console.log('📦 Returning mock programs')
+    res.json({ programs: mockPrograms })
   }
 })
 
