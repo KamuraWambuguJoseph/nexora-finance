@@ -41,8 +41,9 @@ app.get('/api/health', async (_req, res) => {
   try {
     await pool.query('SELECT 1')
     res.json({ ok: true })
-  } catch {
-    res.status(500).json({ ok: false, error: 'Database not connected' })
+  } catch (err) {
+    console.error('🔴 Health check error:', err.message)
+    res.status(500).json({ ok: false, error: err.message })
   }
 })
 

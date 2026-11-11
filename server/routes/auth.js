@@ -31,13 +31,16 @@ function signToken(user) {
 
 // POST /api/auth/signup
 router.post('/signup', async (req, res) => {
+  console.log('📝 Signup request:', req.body.email)
   try {
     const parsed = signupSchema.safeParse(req.body)
     if (!parsed.success) {
+      console.log('❌ Validation failed:', parsed.error.issues[0].message)
       return res.status(400).json({ error: parsed.error.issues[0].message })
     }
     const { name, email, password } = parsed.data
 
+    console.log('🔍 Checking if email exists...')
     const exists = await pool.query(
       'SELECT id FROM users WHERE email = $1',
       [email.toLowerCase()],
@@ -57,7 +60,7 @@ router.post('/signup', async (req, res) => {
     const user = result.rows[0]
     res.status(201).json({ token: signToken(user), user })
   } catch (err) {
-    console.error('Signup error:', err)
+    console.error('Signup error:', err.message, err.stack)
     res.status(500).json({ error: 'Something went wrong. Please try again.' })
   }
 })
