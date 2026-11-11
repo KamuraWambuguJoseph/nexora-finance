@@ -10,6 +10,7 @@ import investmentRoutes from './routes/investments.js'
 import withdrawalRoutes from './routes/withdrawals.js'
 import adminRoutes from './routes/admin.js'
 import referralRoutes from './routes/referrals.js'
+import currencyRoutes from './routes/currency.js'
 
 const app = express()
 
@@ -29,6 +30,7 @@ console.log('adminRoutes:', adminRoutes.toString().substring(0, 100))
 app.use('/api/admin', adminRoutes)
 console.log('Admin routes registered!')
 app.use('/api/referrals', referralRoutes)
+app.use('/api/currency', currencyRoutes)
 
 // global limiter after routes
 app.use('/api', rateLimit({ windowMs: 15 * 60 * 1000, max: 300 }))
