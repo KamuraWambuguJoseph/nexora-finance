@@ -11,6 +11,7 @@ import withdrawalRoutes from './routes/withdrawals.js'
 import adminRoutes from './routes/admin.js'
 import referralRoutes from './routes/referrals.js'
 import currencyRoutes from './routes/currency.js'
+import auth from './middleware/auth.js'
 
 const app = express()
 
@@ -30,14 +31,15 @@ console.log('adminRoutes:', adminRoutes.toString().substring(0, 100))
 app.use('/api/admin', adminRoutes)
 console.log('Admin routes registered!')
 app.use('/api/referrals', referralRoutes)
+console.log('💱 Currency router being mounted at /api/currency')
+console.log('Currency router stack length:', currencyRoutes.stack.length)
 app.use('/api/currency', currencyRoutes)
+console.log('💱 Currency router mounted!')
 
 // global limiter after routes
-app.use('/api', rateLimit({ windowMs: 15 * 60 * 1000, max: 300 }))
+// app.use('/api', rateLimit({ windowMs: 15 * 60 * 1000, max: 300 }))
 
-console.log('Routes registered: auth, transactions, deposits, investments, withdrawals, admin, referrals')
-
-
+console.log('Routes registered: auth, transactions, deposits, investments, withdrawals, admin, referrals, currency')
 
 app.get('/api/health', async (_req, res) => {
   try {
@@ -49,8 +51,6 @@ app.get('/api/health', async (_req, res) => {
   }
 })
 
-import auth from './middleware/auth.js'
-
 app.get('/api/me', auth, async (req, res) => {
   const result = await pool.query(
     'SELECT id, name, email, created_at FROM users WHERE id = $1',
@@ -59,9 +59,15 @@ app.get('/api/me', auth, async (req, res) => {
   res.json({ user: result.rows[0] })
 })
 
-// Catch-all 404 handler
+// Debug middleware - added AFTER all routes
+app.use((req, res, next) => {
+  console.log(`📍 ${req.method} ${req.path}`)
+  next()
+})
+
+// Catch-all 404 handler - LAST middleware
 app.use((req, res) => {
-  console.log(`404: ${req.method} ${req.path}`)
+  console.log(`❌ 404: ${req.method} ${req.path}`)
   res.status(404).json({ error: 'Not found' })
 })
 
