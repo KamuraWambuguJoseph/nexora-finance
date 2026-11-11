@@ -9,14 +9,11 @@ export default function Signup() {
     email: '',
     password: '',
     confirm: '',
-    referral_code: '',
-    preferred_currency: 'USD'
+    referral_code: ''
   })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [membershipId, setMembershipId] = useState('')
-
-  const currencies = ['USD', 'EUR', 'GBP', 'JPY', 'KES', 'BTC', 'ETH']
 
   const onChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value })
@@ -41,8 +38,7 @@ export default function Signup() {
           name: form.name,
           email: form.email,
           password: form.password,
-          referral_code: form.referral_code || undefined,
-          preferred_currency: form.preferred_currency
+          referral_code: form.referral_code || undefined
         },
       })
       setToken(data.token)
@@ -136,20 +132,6 @@ export default function Signup() {
               className="w-full rounded-lg bg-slate-800 border border-slate-700 px-3 py-2 outline-none focus:border-indigo-500"
               placeholder="Enter referral code if you have one"
             />
-          </div>
-
-          <div>
-            <label className="block text-sm mb-1 text-slate-300">Preferred Currency</label>
-            <select
-              name="preferred_currency"
-              value={form.preferred_currency}
-              onChange={onChange}
-              className="w-full rounded-lg bg-slate-800 border border-slate-700 px-3 py-2 outline-none focus:border-indigo-500"
-            >
-              {currencies.map(curr => (
-                <option key={curr} value={curr}>{curr}</option>
-              ))}
-            </select>
           </div>
 
           {membershipId && (
