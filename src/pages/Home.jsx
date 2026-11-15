@@ -140,7 +140,21 @@ export default function Home() {
 
         {/* Footer */}
         <footer className="border-t border-slate-800 dark:border-slate-200 py-8 mt-20">
-          <div className="max-w-6xl mx-auto px-6 text-center text-slate-500 dark:text-slate-600 text-sm">
+          <div className="max-w-6xl mx-auto px-6 flex flex-col items-center gap-3 text-slate-500 dark:text-slate-600 text-sm">
+            <div className="flex flex-wrap items-center justify-center gap-6">
+              <a href="/about" className="transition hover:text-emerald-400 dark:hover:text-emerald-600">
+                About Us
+              </a>
+              <a href="/support" className="transition hover:text-emerald-400 dark:hover:text-emerald-600">
+                Support
+              </a>
+              <a href="/legal/terms" className="transition hover:text-emerald-400 dark:hover:text-emerald-600">
+                Terms
+              </a>
+              <a href="/legal/privacy" className="transition hover:text-emerald-400 dark:hover:text-emerald-600">
+                Privacy
+              </a>
+            </div>
             <p>&copy; 2024 Nexora Finance. All rights reserved.</p>
           </div>
         </footer>

@@ -7,6 +7,8 @@ export default function Signup() {
   const [form, setForm] = useState({
     name: '',
     email: '',
+    phone: '',
+    country: '',
     password: '',
     confirm: '',
     referral_code: ''
@@ -22,7 +24,7 @@ export default function Signup() {
     e.preventDefault()
     setError('')
     try {
-      if (!form.name || !form.email || !form.password) {
+      if (!form.name || !form.email || !form.password || !form.phone || !form.country) {
         throw new Error('Please fill in all fields.')
       }
       if (form.password.length < 8) {
@@ -37,6 +39,8 @@ export default function Signup() {
         body: {
           name: form.name,
           email: form.email,
+          phone: form.phone,
+          country: form.country,
           password: form.password,
           referral_code: form.referral_code || undefined
         },
@@ -97,6 +101,28 @@ export default function Signup() {
               onChange={onChange}
               className="w-full rounded-lg bg-slate-800 border border-slate-700 px-3 py-2 outline-none focus:border-indigo-500"
               placeholder="you@example.com"
+            />
+          </div>
+          <div>
+            <label className="block text-sm mb-1 text-slate-300">Phone number</label>
+            <input
+              type="tel"
+              name="phone"
+              value={form.phone}
+              onChange={onChange}
+              className="w-full rounded-lg bg-slate-800 border border-slate-700 px-3 py-2 outline-none focus:border-indigo-500"
+              placeholder="+1 555 000 0000"
+            />
+          </div>
+          <div>
+            <label className="block text-sm mb-1 text-slate-300">Country</label>
+            <input
+              type="text"
+              name="country"
+              value={form.country}
+              onChange={onChange}
+              className="w-full rounded-lg bg-slate-800 border border-slate-700 px-3 py-2 outline-none focus:border-indigo-500"
+              placeholder="United States"
             />
           </div>
           <div>

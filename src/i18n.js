@@ -38,6 +38,7 @@ const resources = {
       'dashboard.deposits': 'Total Deposits',
       'dashboard.investments': 'Active Investments',
       'dashboard.projected': 'Projected return',
+      'dashboard.earned': 'Total earned',
 
       // Deposit
       'deposit.title': 'Deposit Funds',
@@ -177,6 +178,7 @@ const resources = {
       'dashboard.deposits': 'Depósitos Totales',
       'dashboard.investments': 'Inversiones Activas',
       'dashboard.projected': 'Retorno proyectado',
+      'dashboard.earned': 'Total ganado',
 
       'deposit.title': 'Depositar Fondos',
       'deposit.asset': 'Activo',
@@ -310,6 +312,7 @@ const resources = {
       'dashboard.deposits': 'Dépôts Totaux',
       'dashboard.investments': 'Investissements Actifs',
       'dashboard.projected': 'Rendement projeté',
+      'dashboard.earned': 'Total gagné',
 
       'deposit.title': 'Déposer des Fonds',
       'deposit.asset': 'Actif',
@@ -443,6 +446,7 @@ const resources = {
       'dashboard.deposits': 'Gesamteinzahlungen',
       'dashboard.investments': 'Aktive Investitionen',
       'dashboard.projected': 'Erwartete Rendite',
+      'dashboard.earned': 'Gesamt verdient',
 
       'deposit.title': 'Mittel einzahlen',
       'deposit.asset': 'Vermögenswert',
@@ -576,6 +580,7 @@ const resources = {
       'dashboard.deposits': 'Depósitos Totais',
       'dashboard.investments': 'Investimentos Ativos',
       'dashboard.projected': 'Retorno Projetado',
+      'dashboard.earned': 'Total ganho',
 
       'deposit.title': 'Depositar Fundos',
       'deposit.asset': 'Ativo',

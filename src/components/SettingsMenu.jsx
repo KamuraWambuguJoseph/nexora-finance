@@ -1,10 +1,28 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useTheme } from '../context/ThemeContext'
 import { getToken, logout } from '../lib/api.js'
 
+const LANGUAGES = [
+  { code: 'en', label: 'English' },
+  { code: 'es', label: 'Español' },
+  { code: 'fr', label: 'Français' },
+  { code: 'de', label: 'Deutsch' },
+  { code: 'pt', label: 'Português' },
+  { code: 'it', label: 'Italiano' },
+  { code: 'ja', label: '日本語' },
+  { code: 'zh', label: '中文' },
+  { code: 'ar', label: 'العربية' },
+  { code: 'ru', label: 'Русский' },
+  { code: 'nl', label: 'Nederlands' },
+  { code: 'ko', label: '한국어' },
+  { code: 'th', label: 'ไทย' },
+]
+
 export default function SettingsMenu({ inline = false }) {
   const navigate = useNavigate()
+  const { i18n } = useTranslation()
   const { isDark, toggleTheme } = useTheme()
   const [isOpen, setIsOpen] = useState(false)
   const [user, setUser] = useState(null)
@@ -13,6 +31,11 @@ export default function SettingsMenu({ inline = false }) {
     const userStr = localStorage.getItem('user')
     if (userStr) setUser(JSON.parse(userStr))
   }, [])
+
+  const handleLanguageChange = (lang) => {
+    i18n.changeLanguage(lang)
+    localStorage.setItem('i18nextLng', lang)
+  }
 
   const handleLogout = () => {
     logout()
@@ -38,7 +61,7 @@ export default function SettingsMenu({ inline = false }) {
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className={`absolute top-12 right-0 w-72 rounded-lg border shadow-2xl overflow-hidden z-50 ${
+        <div className={`absolute top-12 right-0 w-80 rounded-lg border shadow-2xl overflow-hidden z-50 ${
           isDark
             ? 'bg-slate-800 border-slate-700'
             : 'bg-white border-slate-200'
@@ -80,6 +103,78 @@ export default function SettingsMenu({ inline = false }) {
               <span className="text-sm font-medium">Profile</span>
             </button>
 
+            {/* Referral Button */}
+            <button
+              onClick={() => {
+                navigate('/referral')
+                setIsOpen(false)
+              }}
+              className={`w-full px-4 py-3 text-left flex items-center gap-3 transition ${
+                isDark
+                  ? 'hover:bg-slate-700 text-slate-200'
+                  : 'hover:bg-slate-100 text-slate-900'
+              }`}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 010 5.656l-3 3a4 4 0 11-5.656-5.656l1.5-1.5M10.172 13.828a4 4 0 010-5.656l3-3a4 4 0 115.656 5.656l-1.5 1.5" />
+              </svg>
+              <span className="text-sm font-medium">Referral</span>
+            </button>
+
+            {/* History Button */}
+            <button
+              onClick={() => {
+                navigate('/dashboard?tab=history')
+                setIsOpen(false)
+              }}
+              className={`w-full px-4 py-3 text-left flex items-center gap-3 transition ${
+                isDark
+                  ? 'hover:bg-slate-700 text-slate-200'
+                  : 'hover:bg-slate-100 text-slate-900'
+              }`}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span className="text-sm font-medium">History</span>
+            </button>
+
+            {/* About Us Button */}
+            <button
+              onClick={() => {
+                navigate('/about')
+                setIsOpen(false)
+              }}
+              className={`w-full px-4 py-3 text-left flex items-center gap-3 transition ${
+                isDark
+                  ? 'hover:bg-slate-700 text-slate-200'
+                  : 'hover:bg-slate-100 text-slate-900'
+              }`}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span className="text-sm font-medium">About Us</span>
+            </button>
+
+            {/* Support Button */}
+            <button
+              onClick={() => {
+                navigate('/support')
+                setIsOpen(false)
+              }}
+              className={`w-full px-4 py-3 text-left flex items-center gap-3 transition ${
+                isDark
+                  ? 'hover:bg-slate-700 text-slate-200'
+                  : 'hover:bg-slate-100 text-slate-900'
+              }`}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+              <span className="text-sm font-medium">Support</span>
+            </button>
+
             {/* Theme Toggle */}
             <button
               onClick={() => {
@@ -103,6 +198,36 @@ export default function SettingsMenu({ inline = false }) {
               )}
               <span className="text-sm font-medium">{isDark ? 'Light Mode' : 'Dark Mode'}</span>
             </button>
+
+            {/* Language */}
+            <div className={`px-4 py-3 border-t ${isDark ? 'border-slate-700' : 'border-slate-200'}`}>
+              <div className="mb-2 flex items-center gap-3">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
+                </svg>
+                <span className="text-sm font-medium">Language</span>
+              </div>
+              <div className="grid grid-cols-2 gap-1.5">
+                {LANGUAGES.map((lang) => {
+                  const active = i18n.language === lang.code
+                  return (
+                    <button
+                      key={lang.code}
+                      onClick={() => handleLanguageChange(lang.code)}
+                      className={`rounded-md px-2.5 py-1.5 text-left text-xs font-medium transition ${
+                        active
+                          ? 'bg-emerald-600 text-white'
+                          : isDark
+                            ? 'bg-slate-700/50 text-slate-300 hover:bg-slate-700'
+                            : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                      }`}
+                    >
+                      {lang.label}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
 
             {/* Logout Button */}
             <button

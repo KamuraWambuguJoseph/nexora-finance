@@ -26,8 +26,9 @@ router.get('/', auth, async (req, res) => {
   }
 })
 
-// POST /api/withdrawals — user requests a withdrawal
+// POST /api/withdrawals — user requests a withdrawal (atomic, balance-validated)
 router.post('/', auth, async (req, res) => {
+  const client = await pool.connect()
   try {
     const parsed = withdrawalSchema.safeParse(req.body)
     if (!parsed.success) {
@@ -35,40 +36,45 @@ router.post('/', auth, async (req, res) => {
     }
     const { asset, amount, wallet_address } = parsed.data
 
-    // Check user has sufficient confirmed balance
-    const balance = await pool.query(
-      `SELECT COALESCE(SUM(amount), 0) as total
-       FROM deposits WHERE user_id = $1 AND status = 'confirmed'`,
-      [req.user.id],
-    )
-    const confirmed = Number(balance.rows[0].total)
+    await client.query('BEGIN')
 
-    // Deduct any active investments
-    const invested = await pool.query(
-      `SELECT COALESCE(SUM(amount), 0) as total
-       FROM investments WHERE user_id = $1 AND status = 'active'`,
+    // Available = confirmed deposits − active investments − pending/released withdrawals
+    const funds = await client.query(
+      `SELECT
+         COALESCE((SELECT SUM(amount) FROM deposits WHERE user_id = $1 AND status = 'confirmed'), 0) AS deposited,
+         COALESCE((SELECT SUM(amount) FROM user_investments WHERE user_id = $1 AND status = 'active'), 0) AS invested,
+         COALESCE((SELECT SUM(amount) FROM withdrawals WHERE user_id = $1 AND status IN ('pending','released')), 0) AS withdrawn`,
       [req.user.id],
     )
-    const activeInvest = Number(invested.rows[0].total)
-    const available = confirmed - activeInvest
+    const { deposited, invested, withdrawn } = funds.rows[0]
+    const available = Number(deposited) - Number(invested) - Number(withdrawn)
 
     if (amount > available) {
-      return res
-        .status(400)
-        .json({ error: `Insufficient balance. Available: $${available.toFixed(2)}` })
+      await client.query('ROLLBACK')
+      return res.status(400).json({
+        error: `Insufficient balance. Available: $${available.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+      })
     }
 
-    const result = await pool.query(
+    const result = await client.query(
       `INSERT INTO withdrawals (user_id, asset, amount, wallet_address, status)
        VALUES ($1, $2, $3, $4, 'pending')
        RETURNING id, asset, amount, wallet_address, status, requested_at`,
       [req.user.id, asset, amount, wallet_address],
     )
 
-    res.status(201).json({ withdrawal: result.rows[0] })
+    await client.query('COMMIT')
+
+    res.status(201).json({
+      withdrawal: result.rows[0],
+      message: 'Withdrawal request submitted and release within 5–10 minutes.',
+    })
   } catch (err) {
+    try { await client.query('ROLLBACK') } catch { }
     console.error('Create withdrawal error:', err)
     res.status(500).json({ error: 'Something went wrong. Please try again.' })
+  } finally {
+    client.release()
   }
 })
 

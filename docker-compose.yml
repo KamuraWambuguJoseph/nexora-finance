@@ -8,23 +8,24 @@ services:
     ports:
       - "4000:4000"
     environment:
-      - DATABASE_URL=postgresql://nexora_user:secure_password_123@nexora-postgres:5432/nexora_finance_testnet
-      - JWT_SECRET=change-this-to-a-long-random-string
+      - DATABASE_URL=${DATABASE_URL:-postgresql://nexora_user:secure_password_123@nexora-postgres:5432/nexora_finance_testnet}
+      - JWT_SECRET=${JWT_SECRET:-change-this-to-a-long-random-string}
       - PORT=4000
-      - CLIENT_ORIGIN=http://localhost:5173
+      - NODE_ENV=production
+      - CLIENT_ORIGIN=${CLIENT_ORIGIN:-http://localhost:4000}
+      - RESEND_API_KEY=${RESEND_API_KEY:-}
+      - EMAIL_FROM=${EMAIL_FROM:-}
     depends_on:
-      - nexora-postgres
+      nexora-postgres:
+        condition: service_healthy
     networks:
       - nexora-network
-    volumes:
-      - .:/app
-      - /app/node_modules
 
   nexora-postgres:
     image: postgres:15
     environment:
       - POSTGRES_USER=nexora_user
-      - POSTGRES_PASSWORD=secure_password_123
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-secure_password_123}
       - POSTGRES_DB=nexora_finance_testnet
     ports:
       - "5432:5432"

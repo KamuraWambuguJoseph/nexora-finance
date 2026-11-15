@@ -40,9 +40,28 @@ html {
 body {
   margin: 0;
   padding: 0;
-  font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+  font-family: 'Plus Jakarta Sans', system-ui, 'Segoe UI', Roboto, sans-serif;
   background-color: var(--bg-primary);
   color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: 'ss01' on, 'cv01' on;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Financial figures, percentages, and table data align neatly */
+.tabular,
+.tabular-nums,
+table,
+.money,
+[data-numeric] {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' on;
+}
+
+/* Headings use tighter tracking for a crisp, professional feel */
+h1, h2, h3, h4, h5, h6 {
+  letter-spacing: -0.02em;
 }
 
 input, textarea, select {

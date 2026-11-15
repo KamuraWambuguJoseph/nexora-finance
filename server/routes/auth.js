@@ -1,9 +1,12 @@
 import { Router } from 'express'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
+import crypto from 'crypto'
 import { z } from 'zod'
 import rateLimit from 'express-rate-limit'
 import pool from '../db.js'
+import { verifyTOTP } from '../totp.js'
+import { sendPasswordResetEmail } from '../email.js'
 
 const router = Router()
 
@@ -14,6 +17,8 @@ const signupSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
   email: z.string().email('Invalid email'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
+  phone: z.string().min(6, 'Phone number is required').max(30),
+  country: z.string().min(2, 'Country is required').max(80),
   referral_code: z.string().optional(),
   preferred_currency: z.string().optional().default('USD'),
 })
@@ -40,16 +45,13 @@ function signToken(user) {
 
 // POST /api/auth/signup
 router.post('/signup', async (req, res) => {
-  console.log('📝 Signup request:', req.body.email)
   try {
     const parsed = signupSchema.safeParse(req.body)
     if (!parsed.success) {
-      console.log('❌ Validation failed:', parsed.error.issues[0].message)
       return res.status(400).json({ error: parsed.error.issues[0].message })
     }
-    const { name, email, password, referral_code, preferred_currency } = parsed.data
+    const { name, email, password, phone, country, referral_code, preferred_currency } = parsed.data
 
-    console.log('🔍 Checking if email exists...')
     const exists = await pool.query(
       'SELECT id FROM users WHERE email = $1',
       [email.toLowerCase()],
@@ -75,10 +77,10 @@ router.post('/signup', async (req, res) => {
     const membership_id = generateMembershipId()
 
     const result = await pool.query(
-      `INSERT INTO users (name, email, password_hash, membership_id, referral_code_used, preferred_currency)
-       VALUES ($1, $2, $3, $4, $5, $6)
-       RETURNING id, name, email, membership_id, preferred_currency, created_at`,
-      [name, email.toLowerCase(), hash, membership_id, referral_code?.toUpperCase() || null, preferred_currency],
+      `INSERT INTO users (name, email, password_hash, membership_id, referral_code_used, preferred_currency, phone, country)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+       RETURNING id, name, email, membership_id, preferred_currency, phone, country, created_at`,
+      [name, email.toLowerCase(), hash, membership_id, referral_code?.toUpperCase() || null, preferred_currency, phone, country],
     )
 
     const user = result.rows[0]
@@ -93,14 +95,13 @@ router.post('/signup', async (req, res) => {
       )
     }
 
-    console.log('✅ User created with membership ID:', membership_id)
     res.status(201).json({
       token: signToken(user),
       user,
       membership_id
     })
   } catch (err) {
-    console.error('❌ Signup error:', err.message, err.stack)
+    console.error('Signup error:', err.message)
     res.status(500).json({ error: 'Something went wrong. Please try again.' })
   }
 })
@@ -132,12 +133,153 @@ router.post('/login', loginLimiter, async (req, res) => {
       return res.status(401).json({ error: 'Invalid email or password.' })
     }
 
+    // If 2FA is enabled, require a second step before issuing a token
+    if (user.two_factor_enabled) {
+      return res.status(206).json({
+        two_factor_required: true,
+        email: user.email,
+        message: 'Enter the 6-digit code from your authenticator app.',
+      })
+    }
+
     res.json({
       token: signToken(user),
       user: { id: user.id, name: user.name, email: user.email, is_admin: user.is_admin },
     })
   } catch (err) {
     console.error('Login error:', err)
+    res.status(500).json({ error: 'Something went wrong. Please try again.' })
+  }
+})
+
+// POST /api/auth/login/2fa — verify TOTP after password step
+const twoFactorSchema = z.object({
+  email: z.string().email('Invalid email'),
+  token: z.string().regex(/^\d{6}$/, 'Enter a 6-digit code'),
+})
+
+router.post('/login/2fa', async (req, res) => {
+  try {
+    const parsed = twoFactorSchema.safeParse(req.body)
+    if (!parsed.success) {
+      return res.status(400).json({ error: parsed.error.issues[0].message })
+    }
+    const { email, token } = parsed.data
+
+    const result = await pool.query('SELECT * FROM users WHERE email = $1', [email.toLowerCase()])
+    const user = result.rows[0]
+    if (!user || !user.two_factor_enabled || !user.two_factor_secret) {
+      return res.status(401).json({ error: 'Two-factor authentication is not set up for this account.' })
+    }
+
+    if (!verifyTOTP(user.two_factor_secret, token)) {
+      return res.status(401).json({ error: 'Invalid code. Check your authenticator app and try again.' })
+    }
+
+    res.json({
+      token: signToken(user),
+      user: { id: user.id, name: user.name, email: user.email, is_admin: user.is_admin },
+    })
+  } catch (err) {
+    console.error('2FA login error:', err)
+    res.status(500).json({ error: 'Something went wrong. Please try again.' })
+  }
+})
+
+// POST /api/auth/forgot-password — email a reset link
+const forgotSchema = z.object({
+  email: z.string().email('Invalid email'),
+})
+
+const resetLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  message: { error: 'Too many reset requests. Try again later.' },
+})
+
+function hashToken(token) {
+  return crypto.createHash('sha256').update(token).digest('hex')
+}
+
+router.post('/forgot-password', resetLimiter, async (req, res) => {
+  try {
+    const parsed = forgotSchema.safeParse(req.body)
+    if (!parsed.success) {
+      return res.status(400).json({ error: parsed.error.issues[0].message })
+    }
+    const { email } = parsed.data
+
+    const result = await pool.query('SELECT id, name FROM users WHERE email = $1', [email.toLowerCase()])
+    const user = result.rows[0]
+
+    // Always return the same message so we don't reveal which emails exist.
+    if (user) {
+      const rawToken = crypto.randomBytes(32).toString('hex')
+      const tokenHash = hashToken(rawToken)
+      const expires = new Date(Date.now() + 30 * 60 * 1000) // 30 minutes
+
+      await pool.query(
+        'UPDATE users SET reset_token_hash = $1, reset_token_expires = $2 WHERE id = $3',
+        [tokenHash, expires, user.id],
+      )
+
+      const clientOrigin = process.env.CLIENT_ORIGIN || 'http://localhost:5173'
+      const resetLink = `${clientOrigin}/reset-password?token=${rawToken}&email=${encodeURIComponent(email.toLowerCase())}`
+      await sendPasswordResetEmail(email.toLowerCase(), resetLink)
+    }
+
+    res.json({ message: 'If an account exists for that email, a password reset link has been sent.' })
+  } catch (err) {
+    console.error('Forgot password error:', err.message)
+    res.status(500).json({ error: 'Something went wrong. Please try again.' })
+  }
+})
+
+// POST /api/auth/reset-password — verify token and set a new password
+const resetSchema = z.object({
+  email: z.string().email('Invalid email'),
+  token: z.string().min(10, 'Invalid token'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
+})
+
+router.post('/reset-password', resetLimiter, async (req, res) => {
+  try {
+    const parsed = resetSchema.safeParse(req.body)
+    if (!parsed.success) {
+      return res.status(400).json({ error: parsed.error.issues[0].message })
+    }
+    const { email, token, password } = parsed.data
+
+    const result = await pool.query(
+      'SELECT id, reset_token_hash, reset_token_expires FROM users WHERE email = $1',
+      [email.toLowerCase()],
+    )
+    const user = result.rows[0]
+
+    if (!user || !user.reset_token_hash || !user.reset_token_expires) {
+      return res.status(400).json({ error: 'Invalid or expired reset link.' })
+    }
+    if (new Date(user.reset_token_expires) < new Date()) {
+      return res.status(400).json({ error: 'This reset link has expired. Request a new one.' })
+    }
+
+    const providedHash = hashToken(token)
+    // constant-time compare to avoid timing attacks
+    const a = Buffer.from(user.reset_token_hash)
+    const b = Buffer.from(providedHash)
+    if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) {
+      return res.status(400).json({ error: 'Invalid or expired reset link.' })
+    }
+
+    const hash = await bcrypt.hash(password, 10)
+    await pool.query(
+      'UPDATE users SET password_hash = $1, reset_token_hash = NULL, reset_token_expires = NULL WHERE id = $2',
+      [hash, user.id],
+    )
+
+    res.json({ message: 'Password reset successful. You can now log in with your new password.' })
+  } catch (err) {
+    console.error('Reset password error:', err.message)
     res.status(500).json({ error: 'Something went wrong. Please try again.' })
   }
 })

@@ -27,6 +27,16 @@ export default function AdminDashboard() {
   const [pendingWithdrawals, setPendingWithdrawals] = useState([])
   const [allWithdrawals, setAllWithdrawals] = useState([])
   const [commissions, setCommissions] = useState([])
+  const [programs, setPrograms] = useState([])
+  const [auditLogs, setAuditLogs] = useState([])
+  const [editProgram, setEditProgram] = useState(null)
+  const [programForm, setProgramForm] = useState({
+    name: '', icon: '📈', min_investment: '', max_investment: '', duration_days: '',
+    roi_percent: '', risk_level: 'medium', management_fee: '', description: '',
+    strategy: '', underlying_activity: '', withdrawal_conditions: '', terms: '',
+    is_active: true, display_order: 0,
+  })
+  const [savingProgram] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
@@ -47,13 +57,15 @@ export default function AdminDashboard() {
     setLoading(true)
     setError('')
     try {
-      const [me, usersData, depositsData, pending, all, commissionsData] = await Promise.all([
+      const [me, usersData, depositsData, pending, all, commissionsData, programsData, auditData] = await Promise.all([
         api('/api/me', { auth: true }),
         api('/api/admin/users', { auth: true }),
         api('/api/admin/deposits', { auth: true }),
         api('/api/admin/withdrawals', { auth: true }),
         api('/api/admin/withdrawals/all', { auth: true }),
         api('/api/admin/referrals', { auth: true }),
+        api('/api/investment-programs/admin/all', { auth: true }),
+        api('/api/investment-programs/admin/audit-logs', { auth: true }),
       ])
       setUser(me.user)
       if (!me.user.is_admin) {
@@ -65,6 +77,8 @@ export default function AdminDashboard() {
       setPendingWithdrawals(pending.withdrawals)
       setAllWithdrawals(all.withdrawals)
       setCommissions(commissionsData.commissions || [])
+      setPrograms(programsData.programs || [])
+      setAuditLogs(auditData.logs || [])
     } catch (err) {
       setError(err.message)
       if (err.message.includes('Admin access')) {
@@ -113,6 +127,38 @@ export default function AdminDashboard() {
     }
   }
 
+  const onConfirmDeposit = async (depositId) => {
+    setError('')
+    setSuccess('')
+    try {
+      await api('/api/admin/deposit/confirm', {
+        method: 'POST',
+        auth: true,
+        body: { deposit_id: depositId },
+      })
+      setSuccess(`Deposit #${depositId} confirmed — funds added to the user's balance.`)
+      await load()
+    } catch (err) {
+      setError(err.message)
+    }
+  }
+
+  const onRejectDeposit = async (depositId) => {
+    setError('')
+    setSuccess('')
+    try {
+      await api('/api/admin/deposit/reject', {
+        method: 'POST',
+        auth: true,
+        body: { deposit_id: depositId },
+      })
+      setSuccess(`Deposit #${depositId} rejected.`)
+      await load()
+    } catch (err) {
+      setError(err.message)
+    }
+  }
+
   const onCreditCommission = async (commissionId) => {
     setError('')
     setSuccess('')
@@ -133,6 +179,77 @@ export default function AdminDashboard() {
   const handleLogout = () => {
     logout()
     navigate('/login')
+  }
+
+  const startAddProgram = () => {
+    setEditProgram(null)
+    setProgramForm({
+      name: '', icon: '📈', min_investment: '', max_investment: '', duration_days: '',
+      roi_percent: '', risk_level: 'medium', management_fee: '', description: '',
+      strategy: '', underlying_activity: '', withdrawal_conditions: '', terms: '',
+      is_active: true, display_order: 0,
+    })
+  }
+
+  const startEditProgram = (p) => {
+    setEditProgram(p)
+    setProgramForm({
+      name: p.name, icon: p.icon, min_investment: p.min_investment, max_investment: p.max_investment,
+      duration_days: p.duration_days, roi_percent: p.roi_percent, risk_level: p.risk_level,
+      management_fee: p.management_fee, description: p.description, strategy: p.strategy,
+      underlying_activity: p.underlying_activity, withdrawal_conditions: p.withdrawal_conditions,
+      terms: p.terms, is_active: p.is_active, display_order: p.display_order,
+    })
+  }
+
+  const saveProgram = async () => {
+    setError('')
+    setSuccess('')
+    try {
+      const body = {
+        name: programForm.name,
+        icon: programForm.icon,
+        min_investment: Number(programForm.min_investment),
+        max_investment: programForm.max_investment === '' ? null : Number(programForm.max_investment),
+        duration_days: Number(programForm.duration_days),
+        roi_percent: Number(programForm.roi_percent),
+        risk_level: programForm.risk_level,
+        management_fee: Number(programForm.management_fee),
+        description: programForm.description,
+        strategy: programForm.strategy,
+        underlying_activity: programForm.underlying_activity,
+        withdrawal_conditions: programForm.withdrawal_conditions,
+        terms: programForm.terms,
+        is_active: programForm.is_active,
+        display_order: Number(programForm.display_order),
+      }
+      if (editProgram) {
+        await api(`/api/investment-programs/admin/${editProgram.id}`, {
+          method: 'PUT', auth: true, body,
+        })
+        setSuccess(`Program "${programForm.name}" updated.`)
+      } else {
+        await api('/api/investment-programs/admin', {
+          method: 'POST', auth: true, body,
+        })
+        setSuccess(`Program "${programForm.name}" created.`)
+      }
+      setEditProgram(null)
+      await load()
+    } catch (err) {
+      setError(err.message)
+    }
+  }
+
+  const deactivateProgram = async (id, name) => {
+    if (!window.confirm(`Deactivate program "${name}"?`)) return
+    try {
+      await api(`/api/investment-programs/admin/${id}`, { method: 'DELETE', auth: true })
+      setSuccess(`Program "${name}" deactivated.`)
+      await load()
+    } catch (err) {
+      setError(err.message)
+    }
   }
 
   if (loading) {
@@ -217,6 +334,7 @@ export default function AdminDashboard() {
               { id: 'deposits', label: `💰 Deposits`, count: deposits.length },
               { id: 'pending', label: `⏳ Pending Withdrawals`, count: pendingWithdrawals.length },
               { id: 'referrals', label: `🔗 Referral Commissions`, count: commissions.filter(c => c.status === 'pending').length },
+              { id: 'programs', label: `📈 Investment Programs`, count: programs.length },
               { id: 'history', label: '📜 History', count: allWithdrawals.length },
             ].map((t) => (
               <button
@@ -282,17 +400,39 @@ export default function AdminDashboard() {
                           Email
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                          Phone
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                          Address
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                          Member ID
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                           Registered
                         </th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-800">
                       {users.map((u) => (
-                        <tr key={u.id} className="hover:bg-slate-800/50">
+                        <tr key={u.id} className="hover:bg-slate-800/50 align-top">
                           <td className="px-6 py-3 font-medium text-white">{u.name}</td>
                           <td className="px-6 py-3 font-mono text-sm text-slate-300">{u.email}</td>
-                          <td className="px-6 py-3 text-sm text-slate-400">
-                            {new Date(u.created_at).toLocaleDateString()}
+                          <td className="px-6 py-3 text-sm text-slate-300">
+                            {u.phone || <span className="text-slate-600">—</span>}
+                          </td>
+                          <td className="px-6 py-3 text-sm text-slate-300 max-w-xs">
+                            {u.address ? (
+                              <span className="block whitespace-pre-wrap break-words">{u.address}</span>
+                            ) : (
+                              <span className="text-slate-600">—</span>
+                            )}
+                          </td>
+                          <td className="px-6 py-3 font-mono text-xs text-emerald-400">
+                            {u.membership_id || <span className="text-slate-600">—</span>}
+                          </td>
+                          <td className="px-6 py-3 text-sm text-slate-400 whitespace-nowrap">
+                            {new Date(u.created_at).toLocaleString()}
                           </td>
                         </tr>
                       ))}
@@ -349,6 +489,9 @@ export default function AdminDashboard() {
                         <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                           Date
                         </th>
+                        <th className="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-slate-500">
+                          Action
+                        </th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-800">
@@ -370,6 +513,28 @@ export default function AdminDashboard() {
                           </td>
                           <td className="px-6 py-3 text-sm text-slate-400">
                             {new Date(d.created_at).toLocaleString()}
+                          </td>
+                          <td className="px-6 py-3">
+                            <div className="flex items-center justify-center gap-2">
+                              {d.status === 'pending' ? (
+                                <>
+                                  <button
+                                    onClick={() => onConfirmDeposit(d.id)}
+                                    className="rounded-lg bg-emerald-600 hover:bg-emerald-500 px-3 py-1.5 text-xs font-bold text-white transition"
+                                  >
+                                    ✓ Confirm
+                                  </button>
+                                  <button
+                                    onClick={() => onRejectDeposit(d.id)}
+                                    className="rounded-lg bg-red-600 hover:bg-red-500 px-3 py-1.5 text-xs font-bold text-white transition"
+                                  >
+                                    ✗ Reject
+                                  </button>
+                                </>
+                              ) : (
+                                <span className="text-xs text-slate-500">—</span>
+                              )}
+                            </div>
                           </td>
                         </tr>
                       ))}
@@ -641,6 +806,278 @@ export default function AdminDashboard() {
                               <span className="text-slate-500">—</span>
                             )}
                           </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* INVESTMENT PROGRAMS MANAGEMENT */}
+        {tab === 'programs' && (
+          <>
+            <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <h2 className="text-2xl font-bold text-white">📈 Investment Programs</h2>
+                <p className="mt-1 text-slate-400">Create, edit, and manage investment programs offered to customers.</p>
+              </div>
+              <button
+                onClick={startAddProgram}
+                className="rounded-xl bg-gradient-to-r from-emerald-400 to-teal-600 px-5 py-2.5 text-sm font-bold text-slate-950 shadow-lg shadow-emerald-500/40 hover:opacity-90 transition"
+              >
+                + Add program
+              </button>
+            </div>
+
+            {editProgram && (
+              <div className="mb-6 rounded-2xl border border-slate-700 bg-slate-900 p-6">
+                <div className="mb-4 flex items-center justify-between">
+                  <h3 className="font-bold text-white">{editProgram ? 'Edit' : 'Add'} program</h3>
+                  <button
+                    onClick={() => setEditProgram(null)}
+                    className="rounded-lg p-2 text-slate-400 hover:text-white hover:bg-slate-800 transition"
+                  >
+                    ✕
+                  </button>
+                </div>
+                <form onSubmit={(e) => { e.preventDefault(); saveProgram() }} className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Program name</label>
+                    <input
+                      value={programForm.name}
+                      onChange={(e) => setProgramForm({ ...programForm, name: e.target.value })}
+                      placeholder="e.g. Starter"
+                      className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white outline-none focus:border-emerald-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Icon</label>
+                    <input
+                      value={programForm.icon}
+                      onChange={(e) => setProgramForm({ ...programForm, icon: e.target.value })}
+                      placeholder="📈"
+                      className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white outline-none focus:border-emerald-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Min investment ($)</label>
+                    <input
+                      type="number"
+                      value={programForm.min_investment}
+                      onChange={(e) => setProgramForm({ ...programForm, min_investment: e.target.value })}
+                      className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white outline-none focus:border-emerald-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Max investment ($) (optional)</label>
+                    <input
+                      type="number"
+                      value={programForm.max_investment}
+                      onChange={(e) => setProgramForm({ ...programForm, max_investment: e.target.value })}
+                      className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white outline-none focus:border-emerald-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Duration (days)</label>
+                    <input
+                      type="number"
+                      value={programForm.duration_days}
+                      onChange={(e) => setProgramForm({ ...programForm, duration_days: e.target.value })}
+                      className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white outline-none focus:border-emerald-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">ROI %</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={programForm.roi_percent}
+                      onChange={(e) => setProgramForm({ ...programForm, roi_percent: e.target.value })}
+                      className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white outline-none focus:border-emerald-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Risk level</label>
+                    <select
+                      value={programForm.risk_level}
+                      onChange={(e) => setProgramForm({ ...programForm, risk_level: e.target.value })}
+                      className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white outline-none focus:border-emerald-500"
+                    >
+                      <option value="low">Low</option>
+                      <option value="medium">Medium</option>
+                      <option value="high">High</option>
+                      <option value="very_high">Very high</option>
+                    </select>
+                  </div>
+                  <div className="lg:col-span-2">
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Description</label>
+                    <input
+                      value={programForm.description}
+                      onChange={(e) => setProgramForm({ ...programForm, description: e.target.value })}
+                      className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white outline-none focus:border-emerald-500"
+                    />
+                  </div>
+                  <div className="lg:col-span-3">
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Terms</label>
+                    <textarea
+                      value={programForm.terms}
+                      onChange={(e) => setProgramForm({ ...programForm, terms: e.target.value })}
+                      rows="2"
+                      className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white outline-none focus:border-emerald-500"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2 lg:col-span-2">
+                    <input
+                      type="checkbox"
+                      checked={programForm.is_active}
+                      onChange={(e) => setProgramForm({ ...programForm, is_active: e.target.checked })}
+                      className="rounded border-slate-600 bg-slate-900 text-emerald-400 focus:ring-emerald-500"
+                    />
+                    <label className="text-sm text-slate-300">Active</label>
+                  </div>
+                  <div className="lg:col-span-3 flex gap-2">
+                    <button
+                      type="submit"
+                      disabled={savingProgram}
+                      className="flex-1 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-600 px-5 py-2.5 text-sm font-bold text-slate-950 disabled:opacity-50 transition"
+                    >
+                      {savingProgram ? 'Saving…' : 'Save program'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditProgram(null)}
+                      className="rounded-xl border border-slate-700 px-5 py-2.5 text-sm font-bold text-slate-400 hover:bg-slate-800 transition"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )}
+
+            <div className="rounded-2xl border border-slate-700 bg-slate-900 overflow-hidden shadow-lg">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-slate-800 bg-slate-800/50">
+                      <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Program</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Min / Max</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Duration</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">ROI / Fee</th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Risk</th>
+                      <th className="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-slate-500">Status</th>
+                      <th className="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-slate-500">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800">
+                    {programs.length === 0 ? (
+                      <tr>
+                        <td colSpan="7" className="px-6 py-12 text-center text-slate-500">No programs yet. Add one above.</td>
+                      </tr>
+                    ) : (
+                      programs.map((p) => (
+                        <tr key={p.id} className="hover:bg-slate-800/50">
+                          <td className="px-6 py-3">
+                            <div className="flex items-center gap-3">
+                              <span className="text-xl">{p.icon}</span>
+                              <div>
+                                <p className="font-medium text-white">{p.name}</p>
+                                <p className="text-xs text-slate-500">{p.description || ''}</p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-3 text-sm">
+                            <p className="font-semibold text-white">{money(p.min_investment)}</p>
+                            {p.max_investment ? (
+                              <p className="text-xs text-slate-500">max {money(p.max_investment)}</p>
+                            ) : (
+                              <p className="text-xs text-slate-500">no limit</p>
+                            )}
+                          </td>
+                          <td className="px-6 py-3 text-sm text-slate-300">{p.duration_days} days</td>
+                          <td className="px-6 py-3 text-sm">
+                            <p className="font-semibold text-white">{p.roi_percent}%</p>
+                            <p className="text-xs text-slate-500">fee {p.management_fee}%</p>
+                          </td>
+                          <td className="px-6 py-3">
+                            <span
+                              className={`rounded-full border px-2 py-0.5 text-[10px] font-medium ${
+                                p.risk_level === 'low'
+                                  ? 'border-emerald-500/30 text-emerald-400 bg-emerald-500/10'
+                                  : p.risk_level === 'medium'
+                                    ? 'border-amber-500/30 text-amber-400 bg-amber-500/10'
+                                    : p.risk_level === 'high'
+                                      ? 'border-orange-500/30 text-orange-400 bg-orange-500/10'
+                                      : 'border-red-500/30 text-red-400 bg-red-500/10'
+                              }`}
+                            >
+                              {p.risk_level.charAt(0).toUpperCase() + p.risk_level.slice(1)}
+                            </span>
+                          </td>
+                          <td className="px-6 py-3 text-center">
+                            <span
+                              className={`px-2 py-1 rounded text-[10px] font-bold ${
+                                p.is_active
+                                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+                                  : 'bg-slate-700/50 text-slate-500 border border-slate-700/50'
+                              }`}
+                            >
+                              {p.is_active ? 'Active' : 'Inactive'}
+                            </span>
+                          </td>
+                          <td className="px-6 py-3 text-center">
+                            <div className="flex items-center justify-center gap-2">
+                              <button
+                                onClick={() => startEditProgram(p)}
+                                className="p-1.5 text-slate-400 hover:text-emerald-400 hover:bg-slate-800 rounded transition"
+                                title="Edit"
+                              >
+                                ✏️
+                              </button>
+                              <button
+                                onClick={() => deactivateProgram(p.id, p.name)}
+                                className="p-1.5 text-slate-400 hover:text-red-400 hover:bg-slate-800 rounded transition"
+                                title="Deactivate"
+                              >
+                                {p.is_active ? '⏹️' : '✅'}
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {auditLogs.length > 0 && (
+              <div className="mt-8 rounded-2xl border border-slate-700 bg-slate-900 overflow-hidden shadow-lg">
+                <div className="px-6 py-4 border-b border-slate-800 bg-slate-800/50">
+                  <h3 className="font-bold text-white">Audit log</h3>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-slate-800 bg-slate-800/50">
+                        <th className="px-6 py-2 text-left text-xs font-semibold uppercase text-slate-500">When</th>
+                        <th className="px-6 py-2 text-left text-xs font-semibold uppercase text-slate-500">Admin</th>
+                        <th className="px-6 py-2 text-left text-xs font-semibold uppercase text-slate-500">Action</th>
+                        <th className="px-6 py-2 text-left text-xs font-semibold uppercase text-slate-500">Entity</th>
+                        <th className="px-6 py-2 text-left text-xs font-semibold uppercase text-slate-500">Details</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-800">
+                      {auditLogs.slice(0, 20).map((log) => (
+                        <tr key={log.id} className="hover:bg-slate-800/50">
+                          <td className="px-6 py-2 text-slate-400">{new Date(log.created_at).toLocaleString()}</td>
+                          <td className="px-6 py-2 text-slate-300 font-medium">{log.admin_name}</td>
+                          <td className="px-6 py-2 text-slate-300 capitalize">{log.action}</td>
+                          <td className="px-6 py-2 text-slate-300 font-mono">{log.entity}#{log.entity_id}</td>
+                          <td className="px-6 py-2 text-slate-400 truncate max-w-xs">{log.details}</td>
                         </tr>
                       ))}
                     </tbody>

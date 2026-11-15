@@ -73,7 +73,7 @@ router.post('/', auth, async (req, res) => {
       `INSERT INTO deposits (user_id, asset, network, amount, wallet_address, tx_hash, status)
        VALUES ($1, $2, $3, $4, $5, $6, $7)
        RETURNING id, asset, network, amount, wallet_address, tx_hash, status, created_at`,
-      [req.user.id, asset, network, amount, method.address, tx_hash, 'confirmed'],
+      [req.user.id, asset, network, amount, method.address, tx_hash, 'pending'],
     )
 
     // Process referral commission if user was referred
@@ -88,7 +88,10 @@ router.post('/', auth, async (req, res) => {
       console.error('Commission processing error (non-fatal):', err)
     }
 
-    res.status(201).json({ deposit: result.rows[0] })
+    res.status(201).json({
+      deposit: result.rows[0],
+      message: 'Deposit submitted. Admin will review and confirm it shortly.',
+    })
   } catch (err) {
     console.error('Create deposit error:', err)
     res.status(500).json({ error: 'Something went wrong. Please try again.' })
