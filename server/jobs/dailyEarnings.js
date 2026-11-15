@@ -102,7 +102,18 @@ export async function runDailyEarnings() {
 // Run once at startup (catches anything missed while server was down),
 // then hourly. Because the job is idempotent (elapsed-days based), hourly
 // firing simply means each day's credit lands within ~1h of its 24h mark.
+// Startup run is deferred so a transient DB hiccup at boot never crashes the app.
 export function startDailyEarningsJob() {
-  runDailyEarnings()
-  cron.schedule('0 * * * *', runDailyEarnings)
+  const safeRun = async () => {
+    try {
+      await runDailyEarnings()
+    } catch (err) {
+      // runDailyEarnings already catches internally, but guard against
+      // pool-connect errors that happen before the try block.
+      console.error('Daily earnings job error:', err.message)
+    }
+  }
+  // Defer slightly so the server is fully listening before the first run
+  setTimeout(safeRun, 5000)
+  cron.schedule('0 * * * *', safeRun)
 }
