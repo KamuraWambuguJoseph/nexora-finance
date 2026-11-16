@@ -101,7 +101,8 @@ router.post('/signup', async (req, res) => {
       membership_id
     })
   } catch (err) {
-    console.error('Signup error:', err.message)
+    const detail = err.errors ? err.errors.map((e) => e.message).join('; ') : err.message
+    console.error('Signup error:', detail || err.code || err)
     res.status(500).json({ error: 'Something went wrong. Please try again.' })
   }
 })

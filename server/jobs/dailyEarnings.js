@@ -91,9 +91,10 @@ export async function runDailyEarnings() {
     }
     return { creditedDays: creditedCount, matured: matured.rows.length }
   } catch (err) {
-    await client.query('ROLLBACK')
-    console.error('Daily earnings job failed:', err.message)
-    return { creditedDays: 0, error: err.message }
+    try { await client.query('ROLLBACK') } catch { /* connection may be dead */ }
+    const detail = err.errors ? err.errors.map((e) => e.message).join('; ') : err.message
+    console.error('Daily earnings job failed:', detail || err.code || err)
+    return { creditedDays: 0, error: detail || err.code }
   } finally {
     client.release()
   }
