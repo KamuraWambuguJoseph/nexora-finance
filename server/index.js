@@ -30,8 +30,10 @@ app.use(express.json())
 // General API rate limit — protects every route from basic abuse
 app.use('/api', rateLimit({ windowMs: 15 * 60 * 1000, max: 300 }))
 
-// Stricter limit on auth — brute-force / credential-stuffing protection
-app.use('/api/auth', rateLimit({ windowMs: 15 * 60 * 1000, max: 20 }))
+// Stricter limit on auth — brute-force / credential-stuffing protection.
+// 50/15min allows normal use (login + signup + password reset retries)
+// while still blocking automated brute-force attacks.
+app.use('/api/auth', rateLimit({ windowMs: 15 * 60 * 1000, max: 50 }))
 
 app.use('/api/auth', authRoutes)
 app.use('/api/transactions', transactionRoutes)
