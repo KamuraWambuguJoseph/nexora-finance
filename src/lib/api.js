@@ -1,4 +1,7 @@
-const BASE = import.meta.env.VITE_API_URL || 'http://localhost:4000'
+// In production the frontend is served by the same Express server as the API,
+// so we call the same origin (relative URL). In dev, Vite runs on 5173 and the
+// API on 4000, so we fall back to localhost:4000 unless VITE_API_URL is set.
+const BASE = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : 'http://localhost:4000')
 const TOKEN_KEY = 'nexora_token'
 
 export function getToken() {
