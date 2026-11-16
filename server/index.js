@@ -47,12 +47,19 @@ app.use('/api/currency', currencyRoutes)
 app.use('/api/profile', profileRoutes)
 
 app.get('/api/health', async (_req, res) => {
+  const dbConfigured = Boolean(process.env.DATABASE_URL)
   try {
     await pool.query('SELECT 1')
-    res.json({ ok: true })
+    res.json({ ok: true, database: 'connected', database_configured: dbConfigured })
   } catch (err) {
-    console.error('Health check error:', err.message)
-    res.status(500).json({ ok: false, error: err.message })
+    const detail = err.errors ? err.errors.map((e) => e.message).join('; ') : err.message
+    console.error('Health check error:', detail || err.code)
+    res.status(500).json({
+      ok: false,
+      database: 'disconnected',
+      database_configured: dbConfigured,
+      error: dbConfigured ? (detail || err.code) : 'DATABASE_URL is not set',
+    })
   }
 })
 
@@ -86,6 +93,14 @@ app.use((req, res) => {
 const PORT = process.env.PORT || 4000
 app.listen(PORT, () => {
   console.log(`Nexora API running on port ${PORT}`)
+  if (!process.env.DATABASE_URL) {
+    console.error('============================================================')
+    console.error('WARNING: DATABASE_URL is NOT set. The app cannot reach the')
+    console.error('database. Set DATABASE_URL in your environment variables.')
+    console.error('============================================================')
+  } else {
+    console.log('DATABASE_URL is set (database configured)')
+  }
   startDailyEarningsJob()
   console.log('Daily earnings job started')
 })
