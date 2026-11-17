@@ -28,7 +28,7 @@ router.get('/methods', auth, (_req, res) => {
 const depositSchema = z.object({
   asset: z.enum(['BTC', 'ETH', 'USDT']),
   network: z.string().min(1).max(40),
-  amount: z.coerce.number().positive('Amount must be greater than 0'),
+  amount: z.coerce.number().nonnegative('Amount must be 0 or greater').optional().default(0),
   tx_hash: z.string().min(10, 'Transaction hash is required').max(190).optional(),
 })
 

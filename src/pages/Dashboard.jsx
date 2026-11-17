@@ -165,7 +165,8 @@ export default function Dashboard() {
     setNotice('')
     setSubmitting(true)
     try {
-      const body = { asset, network, amount: Number(depAmount) }
+      const body = { asset, network }
+      if (depAmount.trim()) body.amount = Number(depAmount)
       if (txHash.trim()) body.tx_hash = txHash.trim()
       const data = await api('/api/deposits', {
         method: 'POST',
@@ -570,11 +571,10 @@ export default function Dashboard() {
                   <input
                     type="number"
                     step="0.01"
-                    min="10"
-                    placeholder="0.00"
+                    min="0"
+                    placeholder="0.00 (optional — auto-detected)"
                     value={depAmount}
                     onChange={(e) => setDepAmount(e.target.value)}
-                    required
                     className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none transition focus:border-emerald-500"
                   />
                 </div>

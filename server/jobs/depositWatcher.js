@@ -86,20 +86,24 @@ async function scanPending() {
       return txs
     }
 
-    // track used hashes within this run to avoid double-assign
+    // deposits with amount > 0: match by amount
+    // deposits with amount = 0: FIFO-assign the next unclaimed incoming tx
+    const positive = rows.filter((d) => Number(d.amount) > 0)
+    const unknown = rows.filter((d) => Number(d.amount) === 0)
+
     const used = new Set()
-    // also fetch already-used hashes
     const { rows: usedRows } = await pool.query(`SELECT tx_hash FROM deposits WHERE tx_hash IS NOT NULL`)
     for (const r of usedRows) used.add(r.tx_hash)
 
-    for (const dep of rows) {
+    // Handle positive-amount deposits first
+    for (const dep of positive) {
       let txs
       try { txs = await getTxs(dep) } catch (e) {
         console.error('Watcher fetch error:', dep.asset, dep.network, e.message)
         continue
       }
       const created = new Date(dep.created_at).getTime()
-      const windowStart = created - 2 * 60 * 60 * 1000 // 2h before
+      const windowStart = created - 2 * 60 * 60 * 1000
       const amount = Number(dep.amount)
       const tol = Math.max(amount * 0.02, 1e-8)
 
@@ -116,6 +120,31 @@ async function scanPending() {
           [match.hash, dep.id]
         )
         console.log(`Watcher: deposit #${dep.id} matched tx ${match.hash} (${match.amount})`)
+      }
+    }
+
+    // Handle unknown-amount deposits: FIFO assign next unclaimed tx within window
+    for (const dep of unknown) {
+      let txs
+      try { txs = await getTxs(dep) } catch (e) {
+        console.error('Watcher fetch error:', dep.asset, dep.network, e.message)
+        continue
+      }
+      const created = new Date(dep.created_at).getTime()
+      const windowStart = created - 2 * 60 * 60 * 1000
+      // sort ascending by time
+      const candidates = txs
+        .filter((t) => !used.has(t.hash) && (!t.time || t.time >= windowStart))
+        .sort((a, b) => (a.time || 0) - (b.time || 0))
+
+      if (candidates.length) {
+        const match = candidates[0]
+        used.add(match.hash)
+        await pool.query(
+          `UPDATE deposits SET tx_hash = $1, amount = $2 WHERE id = $3 AND tx_hash IS NULL`,
+          [match.hash, match.amount, dep.id]
+        )
+        console.log(`Watcher: deposit #${dep.id} auto-detected tx ${match.hash} amount ${match.amount}`)
       }
     }
   } catch (err) {
