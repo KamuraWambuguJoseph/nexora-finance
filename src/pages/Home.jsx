@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import AnimatedLanding from '../components/AnimatedLanding'
+import RotatingEarth from '../components/RotatingEarth'
 
 export default function Home() {
   const [showLanding, setShowLanding] = useState(true)
@@ -32,8 +33,9 @@ export default function Home() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.8 }}
-        className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 dark:from-[#FFF9F5] dark:via-white dark:to-[#FAF5F0] text-white dark:text-slate-900"
+        className="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 dark:from-[#FFF9F5] dark:via-white dark:to-[#FAF5F0] text-white dark:text-slate-900"
       >
+        <RotatingEarth className="pointer-events-none absolute inset-0 h-full w-full opacity-50" />
         {/* Navigation */}
         <nav className="sticky top-0 z-10 backdrop-blur-md border-b border-slate-800/50 dark:border-slate-200 bg-slate-950/40 dark:bg-white/40">
           <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
