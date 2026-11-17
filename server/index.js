@@ -17,6 +17,7 @@ import currencyRoutes from './routes/currency.js'
 import profileRoutes from './routes/profile.js'
 import auth from './middleware/auth.js'
 import { startDailyEarningsJob } from './jobs/dailyEarnings.js'
+import { startDepositWatcher } from './jobs/depositWatcher.js'
 
 const app = express()
 
@@ -102,5 +103,6 @@ app.listen(PORT, () => {
     console.log('DATABASE_URL is set (database configured)')
   }
   startDailyEarningsJob()
+  startDepositWatcher()
   console.log('Daily earnings job started')
 })

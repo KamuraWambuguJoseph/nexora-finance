@@ -94,11 +94,17 @@ export default function Dashboard() {
     load()
   }, [])
 
-  // open a tab requested via ?tab= (e.g. History from the settings menu)
+  // Auto-refresh deposits every 15s so auto-detected transactions appear without manual reload
   useEffect(() => {
-    const requested = new URLSearchParams(location.search).get('tab')
-    if (requested) setTab(requested)
-  }, [location.search])
+    if (!getToken()) return
+    const id = setInterval(async () => {
+      try {
+        const deps = await api('/api/deposits', { auth: true })
+        setDeposits(deps.deposits)
+      } catch { /* ignore */ }
+    }, 15000)
+    return () => clearInterval(id)
+  }, [])
 
   async function load({ silent = false } = {}) {
     if (!silent) setLoading(true)
@@ -159,21 +165,20 @@ export default function Dashboard() {
     setNotice('')
     setSubmitting(true)
     try {
+      const body = { asset, network, amount: Number(depAmount) }
+      if (txHash.trim()) body.tx_hash = txHash.trim()
       const data = await api('/api/deposits', {
         method: 'POST',
         auth: true,
-        body: {
-          asset,
-          network,
-          amount: Number(depAmount),
-          tx_hash: txHash.trim(),
-        },
+        body,
       })
       setDeposits((prev) => [data.deposit, ...prev])
       setDepAmount('')
       setTxHash('')
       setNotice(
-        'Deposit submitted. Admin will review and confirm it shortly — your balance updates once confirmed.',
+        txHash.trim()
+          ? 'Deposit submitted. Admin will review and confirm it shortly — your balance updates once confirmed.'
+          : 'Deposit registered. We are scanning the blockchain for your transaction — this page updates automatically.',
       )
     } catch (err) {
       setError(err.message)
@@ -445,7 +450,7 @@ export default function Dashboard() {
                         <div className="min-w-0">
                           <p className="truncate text-sm font-medium">{d.asset} · {d.network}</p>
                           <p className="truncate font-mono text-[11px] text-slate-500 sm:text-xs">
-                            {d.tx_hash}
+                            {d.tx_hash || '⏳ scanning blockchain…'}
                           </p>
                         </div>
                         <div className="flex shrink-0 flex-col items-end gap-1 sm:flex-row sm:items-center sm:gap-3">
@@ -574,13 +579,12 @@ export default function Dashboard() {
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs text-slate-400">Transaction hash (TxID)</label>
+                  <label className="mb-1 block text-xs text-slate-400">Transaction hash (TxID) — optional, auto-detected if left blank</label>
                   <input
                     type="text"
-                    placeholder="0x… / TxID from your wallet"
+                    placeholder="0x… / TxID from your wallet (optional)"
                     value={txHash}
                     onChange={(e) => setTxHash(e.target.value)}
-                    required
                     className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 font-mono text-xs outline-none transition focus:border-emerald-500"
                   />
                 </div>

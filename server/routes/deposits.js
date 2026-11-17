@@ -29,7 +29,7 @@ const depositSchema = z.object({
   asset: z.enum(['BTC', 'ETH', 'USDT']),
   network: z.string().min(1).max(40),
   amount: z.coerce.number().positive('Amount must be greater than 0'),
-  tx_hash: z.string().min(10, 'Transaction hash is required').max(190),
+  tx_hash: z.string().min(10, 'Transaction hash is required').max(190).optional(),
 })
 
 // GET /api/deposits — current user's deposit history
@@ -61,19 +61,21 @@ router.post('/', auth, async (req, res) => {
       return res.status(400).json({ error: 'Unsupported asset or network.' })
     }
 
-    const dup = await pool.query(
-      'SELECT id FROM deposits WHERE user_id = $1 AND tx_hash = $2',
-      [req.user.id, tx_hash],
-    )
-    if (dup.rows.length > 0) {
-      return res.status(409).json({ error: 'This transaction hash was already submitted.' })
+    if (tx_hash) {
+      const dup = await pool.query(
+        'SELECT id FROM deposits WHERE user_id = $1 AND tx_hash = $2',
+        [req.user.id, tx_hash],
+      )
+      if (dup.rows.length > 0) {
+        return res.status(409).json({ error: 'This transaction hash was already submitted.' })
+      }
     }
 
     const result = await pool.query(
       `INSERT INTO deposits (user_id, asset, network, amount, wallet_address, tx_hash, status)
        VALUES ($1, $2, $3, $4, $5, $6, $7)
        RETURNING id, asset, network, amount, wallet_address, tx_hash, status, created_at`,
-      [req.user.id, asset, network, amount, method.address, tx_hash, 'pending'],
+      [req.user.id, asset, network, amount, method.address, tx_hash || null, 'pending'],
     )
 
     // Process referral commission if user was referred
@@ -90,7 +92,9 @@ router.post('/', auth, async (req, res) => {
 
     res.status(201).json({
       deposit: result.rows[0],
-      message: 'Deposit submitted. Admin will review and confirm it shortly.',
+      message: tx_hash
+        ? 'Deposit submitted. Admin will review and confirm it shortly.'
+        : 'Deposit registered. We are scanning the blockchain for your transaction — this page updates automatically.',
     })
   } catch (err) {
     console.error('Create deposit error:', err)
