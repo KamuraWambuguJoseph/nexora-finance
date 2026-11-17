@@ -560,11 +560,11 @@ export default function Dashboard() {
             <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6 lg:col-span-2">
               <div className="mb-1 flex items-center gap-2">
                 <span className="grid h-6 w-6 place-items-center rounded-full bg-emerald-500/15 text-xs font-bold text-emerald-400">2</span>
-                <h2 className="font-semibold">Submit deposit</h2>
-              </div>
-              <p className="mb-4 text-sm text-slate-500">
-                Enter the amount sent and paste the transaction hash (TxID).
-              </p>
+                  <h2 className="font-semibold">Confirm deposit</h2>
+                </div>
+                <p className="mb-4 text-sm text-slate-500">
+                  Scan the QR or copy the address, send funds from your wallet, then click the button below. Amount and transaction hash are auto-detected.
+                </p>
               <form onSubmit={onDeposit} className="space-y-4">
                 <div>
                   <label className="mb-1 block text-xs text-slate-400">Amount (USD)</label>
@@ -593,7 +593,7 @@ export default function Dashboard() {
                   disabled={submitting}
                   className="w-full rounded-lg bg-gradient-to-r from-emerald-500 to-teal-600 py-2.5 text-sm font-semibold text-slate-950 transition hover:brightness-110 disabled:opacity-50"
                 >
-                  {submitting ? 'Confirming…' : 'Submit deposit'}
+                  {submitting ? 'Confirming…' : 'Done, I have deposited'}
                 </button>
               </form>
             </div>
