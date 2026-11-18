@@ -96,17 +96,15 @@ router.post('/signup', async (req, res) => {
       )
     }
 
-    // Email verification link (auto-verify on click)
-    const rawToken = crypto.randomBytes(32).toString('hex')
-    const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex')
+    // Email verification code (6 digits)
+    const code = String(Math.floor(100000 + Math.random() * 900000))
+    const tokenHash = crypto.createHash('sha256').update(code).digest('hex')
     const expires = new Date(Date.now() + 24 * 60 * 60 * 1000)
     await pool.query(
       `UPDATE users SET verify_token_hash = $1, verify_token_expires = $2 WHERE id = $3`,
       [tokenHash, expires, user.id],
     )
-    const clientOrigin = process.env.CLIENT_ORIGIN || 'http://localhost:5173'
-    const verifyLink = `${clientOrigin}/verify-email?email=${encodeURIComponent(email.toLowerCase())}&token=${rawToken}`
-    sendVerificationEmail(email.toLowerCase(), verifyLink).catch(() => {})
+    sendVerificationEmail(email.toLowerCase(), code).catch(() => {})
 
     res.status(201).json({
       needs_verification: true,
@@ -130,21 +128,21 @@ const loginLimiter = rateLimit({
 // POST /api/auth/verify-email â€” confirm email with token
 const verifyEmailSchema = z.object({
   email: z.string().email('Invalid email'),
-  token: z.string().min(10, 'Invalid token'),
+  code: z.string().regex(/^\d{6}$/, 'Enter the 6-digit code'),
 })
 
 router.post('/verify-email', async (req, res) => {
   try {
     const parsed = verifyEmailSchema.safeParse(req.body)
     if (!parsed.success) return res.status(400).json({ error: parsed.error.issues[0].message })
-    const { email, token } = parsed.data
-    const tokenHash = crypto.createHash('sha256').update(token).digest('hex')
+    const { email, code } = parsed.data
+    const tokenHash = crypto.createHash('sha256').update(code).digest('hex')
     const result = await pool.query(
       `SELECT id FROM users WHERE email = $1 AND verify_token_hash = $2 AND verify_token_expires > now()`,
       [email.toLowerCase(), tokenHash],
     )
     if (result.rows.length === 0) {
-      return res.status(400).json({ error: 'Invalid or expired verification link.' })
+      return res.status(400).json({ error: 'Invalid or expired verification code.' })
     }
     await pool.query(
       `UPDATE users SET email_verified = true, verify_token_hash = NULL, verify_token_expires = NULL WHERE id = $1`,
@@ -169,16 +167,14 @@ router.post('/resend-verification', async (req, res) => {
     )
     if (result.rows.length === 0) return res.json({ success: true })
     if (result.rows[0].email_verified) return res.json({ success: true, already_verified: true })
-    const rawToken = crypto.randomBytes(32).toString('hex')
-    const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex')
+    const code = String(Math.floor(100000 + Math.random() * 900000))
+    const tokenHash = crypto.createHash('sha256').update(code).digest('hex')
     const expires = new Date(Date.now() + 24 * 60 * 60 * 1000)
     await pool.query(
       `UPDATE users SET verify_token_hash = $1, verify_token_expires = $2 WHERE id = $3`,
       [tokenHash, expires, result.rows[0].id],
     )
-    const clientOrigin = process.env.CLIENT_ORIGIN || 'http://localhost:5173'
-    const verifyLink = `${clientOrigin}/verify-email?email=${encodeURIComponent(email)}&token=${rawToken}`
-    sendVerificationEmail(email, verifyLink).catch(() => {})
+    sendVerificationEmail(email, code).catch(() => {})
     res.json({ success: true })
   } catch (err) {
     console.error('Resend verification error:', err)

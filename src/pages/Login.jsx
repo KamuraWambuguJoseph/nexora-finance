@@ -113,14 +113,14 @@ export default function Login() {
                 onClick={async () => {
                   try {
                     await api('/api/auth/resend-verification', { method: 'POST', body: { email: form.email } })
-                    setError('A new verification link has been sent to your email.')
+                    setError('A new code has been sent to your email.')
                   } catch (e) {
                     setError(e.message)
                   }
                 }}
                 className="text-sm text-indigo-400 hover:underline"
               >
-                Resend verification email
+                Resend verification code
               </button>
             )}
 
