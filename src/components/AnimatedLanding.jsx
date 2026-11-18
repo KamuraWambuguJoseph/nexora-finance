@@ -8,7 +8,7 @@ export default function AnimatedLanding({ onComplete }) {
     const timer = setTimeout(() => {
       setIsLoading(false)
       onComplete()
-    }, 5000)
+    }, 1500)
     return () => clearTimeout(timer)
   }, [onComplete])
 
@@ -282,7 +282,7 @@ export default function AnimatedLanding({ onComplete }) {
           x2="0"
           y2="100%"
           stroke="url(#lightBeam1)"
-          stroke Width="2"
+          strokeWidth="2"
           animate={{
             opacity: [0, 0.5, 0],
           }}
