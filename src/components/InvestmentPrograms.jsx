@@ -12,7 +12,7 @@ const RISK_STYLE = {
   very_high: { label: 'Very high risk', dot: 'bg-red-400', text: 'text-red-400', ring: 'ring-red-500/30', bg: 'bg-red-500/10' },
 }
 
-// Professional tier system — refined accent colors + soft glow per tier
+// Professional tier system â€” refined accent colors + soft glow per tier
 const TIERS = [
   { key: 'starter',    label: 'Starter',    numeral: 'I',    accent: 'from-slate-300 to-slate-500',   glow: 'shadow-slate-500/20',   text: 'text-slate-300' },
   { key: 'growth',     label: 'Growth',     numeral: 'II',   accent: 'from-sky-400 to-blue-600',      glow: 'shadow-sky-500/30',     text: 'text-sky-400' },
@@ -20,7 +20,7 @@ const TIERS = [
   { key: 'premium',    label: 'Premium',    numeral: 'IV',   accent: 'from-blue-500 to-slate-700',    glow: 'shadow-blue-500/30',    text: 'text-blue-400' },
   { key: 'gold',       label: 'Gold',       numeral: 'V',    accent: 'from-yellow-400 to-orange-500', glow: 'shadow-yellow-500/30',  text: 'text-yellow-400' },
   { key: 'diamond',    label: 'Diamond',    numeral: 'VI',   accent: 'from-slate-200 to-slate-400',   glow: 'shadow-slate-400/30',   text: 'text-slate-200' },
-  { key: 'black-elite',label: 'Elite',      numeral: '★',    accent: 'from-yellow-500 to-yellow-400', glow: 'shadow-yellow-500/40',  text: 'text-yellow-400' },
+  { key: 'black-elite',label: 'Elite',      numeral: 'â˜…',    accent: 'from-yellow-500 to-yellow-400', glow: 'shadow-yellow-500/40',  text: 'text-yellow-400' },
 ]
 
 function tierFor(name) {
@@ -175,7 +175,7 @@ export default function InvestmentPrograms({
       <div className="min-h-[60vh] flex items-center justify-center text-white">
         <motion.div animate={{ opacity: [0.4, 1, 0.4] }} transition={{ duration: 1.4, repeat: Infinity }} className="flex flex-col items-center gap-3">
           <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-700 border-t-emerald-400" />
-          <p className="text-sm text-slate-400">Loading investment programs…</p>
+          <p className="text-sm text-slate-400">Loading investment programsâ€¦</p>
         </motion.div>
       </div>
     )
@@ -232,7 +232,7 @@ export default function InvestmentPrograms({
             </p>
           </div>
 
-          {/* Summary table — desktop only */}
+          {/* Summary table â€” desktop only */}
           <div className="mb-8 hidden md:block rounded-2xl border border-slate-700 bg-slate-900 overflow-hidden shadow-lg">
             <div className="overflow-x-auto">
               <table className="w-full text-left">
@@ -265,12 +265,18 @@ export default function InvestmentPrograms({
                         <td className="px-6 py-4 text-sm text-slate-300">{p.duration_days} days</td>
                         <td className="px-6 py-4"><RiskPill level={p.risk_level} size="xs" /></td>
                         <td className="px-6 py-4 text-right">
-                          <button
-                            onClick={() => openConfirm(p)}
-                            className="rounded-lg bg-gradient-to-r from-emerald-400 to-teal-600 px-4 py-2 text-xs font-bold text-slate-950 shadow-sm shadow-emerald-500/30 hover:from-emerald-500 hover:to-teal-500 transition"
-                          >
-                            Invest now
-                          </button>
+<button
+                onClick={() => openConfirm(p)}
+                className="relative overflow-hidden rounded-lg bg-gradient-to-r from-emerald-400 to-teal-600 px-4 py-2 text-xs font-bold text-slate-950 shadow-sm shadow-emerald-500/30 hover:from-emerald-500 hover:to-teal-500 transition"
+              >
+                <span className="relative z-10">Invest now</span>
+                <motion.span
+                  initial={{ x: '-100%' }}
+                  whileHover={{ x: '100%' }}
+                  transition={{ duration: 0.4 }}
+                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent"
+                />
+              </button>
                         </td>
                       </tr>
                     )
@@ -303,7 +309,7 @@ export default function InvestmentPrograms({
                       <span className={`shrink-0 text-[9px] font-bold uppercase tracking-wider ${tier.text}`}>{tier.label}</span>
                     </div>
                     <p className="text-[11px] text-slate-400 truncate">
-                      <span className="font-semibold text-white">{money(p.min_investment)}</span> min · {p.duration_days}d · {p.management_fee}% fee{p.daily_rate_pct ? ` · ${p.daily_rate_pct}%/day` : ''}
+                      <span className="font-semibold text-white">{money(p.min_investment)}</span> min Â· {p.duration_days}d Â· {p.management_fee}% fee{p.daily_rate_pct ? ` Â· ${p.daily_rate_pct}%/day` : ''}
                     </p>
                   </div>
                   <div className="flex shrink-0 items-center gap-1.5">
@@ -315,9 +321,15 @@ export default function InvestmentPrograms({
                     </button>
                     <button
                       onClick={() => openConfirm(p)}
-                      className="rounded-md bg-white px-3 py-1.5 text-[11px] font-bold text-slate-950 shadow"
+                      className="relative overflow-hidden rounded-md bg-gradient-to-r from-emerald-400 to-teal-600 px-3 py-1.5 text-[11px] font-bold text-slate-950 shadow transition"
                     >
-                      Invest
+                      <span className="relative z-10">Invest</span>
+                      <motion.span
+                        initial={{ x: '-100%' }}
+                        whileHover={{ x: '100%' }}
+                        transition={{ duration: 0.4 }}
+                        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent"
+                      />
                     </button>
                   </div>
                 </motion.div>
@@ -326,29 +338,29 @@ export default function InvestmentPrograms({
           </div>
 
           {/* Desktop/tablet: card grid */}
-          <div className="hidden md:grid md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-4 md:gap-6">
-            {programs.map((p, i) => {
-              const tier = tierFor(p.name)
-              const maxText = p.max_investment ? money(p.max_investment) : 'No limit'
-              return (
-                <motion.div
-                  key={p.id}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: '-40px' }}
-                  transition={{ duration: 0.5, delay: i * 0.07, ease: [0.22, 1, 0.36, 1] }}
-                  whileHover={{ y: -6, transition: { duration: 0.25 } }}
-                  className={`group relative rounded-3xl border border-slate-700/60 bg-gradient-to-b from-slate-900 to-slate-950 overflow-hidden cursor-pointer shadow-lg ${tier.glow} flex flex-col`}
-                >
+<div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 md:gap-6">
+              {programs.map((p, i) => {
+                const tier = tierFor(p.name)
+                const maxText = p.max_investment ? money(p.max_investment) : 'No limit'
+                return (
+                  <motion.div
+                    key={p.id}
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: '-40px' }}
+                    transition={{ duration: 0.5, delay: i * 0.07, ease: [0.22, 1, 0.36, 1] }}
+                    whileHover={{ y: -8, transition: { duration: 0.25 } }}
+                    className={`group relative rounded-3xl border border-slate-700/60 bg-gradient-to-b from-slate-900 to-slate-950 overflow-hidden cursor-pointer shadow-lg ${tier.glow} flex flex-col`}
+                  >
                   {/* header band */}
                   <div className={`bg-gradient-to-r ${tier.accent} px-5 py-4`}>
                     <div className="flex items-center gap-3">
-                      <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-950/25 text-sm font-black text-white backdrop-blur">
+                      <span className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-slate-950/25 text-base font-black text-white backdrop-blur">
                         {tier.numeral}
                       </span>
                       <div className="min-w-0">
                         <p className="text-[10px] font-bold uppercase tracking-widest text-white/70">{tier.label}</p>
-                        <h3 className="text-base font-bold leading-tight text-white truncate">{p.name}</h3>
+                        <h3 className="text-2xl font-bold leading-tight text-white truncate">{p.name}</h3>
                       </div>
                       <button
                         onClick={(e) => { e.stopPropagation(); setDetailProgram(p); setDetailOpen(true) }}
@@ -364,7 +376,7 @@ export default function InvestmentPrograms({
                     <div className="mb-4">
                       <p className="text-[10px] uppercase tracking-wider text-slate-500 mb-0.5">Minimum investment</p>
                       <div className="flex items-baseline gap-1">
-                        <span className="text-3xl font-black text-white leading-none">{money(p.min_investment)}</span>
+                        <span className="text-4xl font-black text-white leading-none">{money(p.min_investment)}</span>
                         <span className="text-[10px] text-slate-500">USD</span>
                       </div>
                     </div>
@@ -399,12 +411,18 @@ export default function InvestmentPrograms({
                       {p.description || 'No description available.'}
                     </p>
 
-                    <button
-                      onClick={() => openConfirm(p)}
-                      className="w-full rounded-xl bg-white py-2.5 text-sm font-bold text-slate-950 shadow transition hover:bg-slate-100"
-                    >
-                      Invest now
-                    </button>
+<button
+                    onClick={() => openConfirm(p)}
+                    className="relative overflow-hidden rounded-xl bg-gradient-to-r from-emerald-400 to-teal-600 py-2.5 text-sm font-bold text-slate-950 shadow-lg shadow-emerald-500/30 transition hover:from-emerald-500 hover:to-teal-500"
+                  >
+                    <span className="relative z-10">Invest now</span>
+                    <motion.span
+                      initial={{ x: '-100%' }}
+                      whileHover={{ x: '100%' }}
+                      transition={{ duration: 0.4 }}
+                      className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent"
+                    />
+                  </button>
                   </div>
                 </motion.div>
               )
@@ -450,9 +468,15 @@ export default function InvestmentPrograms({
                 <button
                   onClick={() => openConfirm(calcProgram)}
                   disabled={disabledCalc()}
-                  className="w-full py-3.5 rounded-xl font-bold text-white transition disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-emerald-500/25 bg-gradient-to-r from-emerald-400 to-teal-600 hover:from-emerald-500 hover:to-teal-500"
+                  className="relative overflow-hidden w-full py-3.5 rounded-xl font-bold text-white transition disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-emerald-500/25 bg-gradient-to-r from-emerald-400 to-teal-600 hover:from-emerald-500 hover:to-teal-500"
                 >
-                  Invest in {calcProgram.name}
+                  <span className="relative z-10">Invest in {calcProgram.name}</span>
+                  <motion.span
+                    initial={{ x: '-100%' }}
+                    whileHover={{ x: '100%' }}
+                    transition={{ duration: 0.4 }}
+                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent"
+                  />
                 </button>
               </div>
             </div>
@@ -461,7 +485,7 @@ export default function InvestmentPrograms({
               <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
                 {[
                   { label: 'Investment', value: money(calcAmount) },
-                  { label: 'Daily earning', value: calcProgram.daily_rate_pct ? `${money(Number(calcAmount) * (Number(calcProgram.daily_rate_pct) / 100))}/day` : '—' },
+                  { label: 'Daily earning', value: calcProgram.daily_rate_pct ? `${money(Number(calcAmount) * (Number(calcProgram.daily_rate_pct) / 100))}/day` : 'â€”' },
                   { label: 'Management fee', value: money(Number(calcAmount) * (Number(calcProgram.management_fee) / 100)) },
                   { label: 'Maturity value', value: money(Number(calcAmount) * (1 - Number(calcProgram.management_fee) / 100) * (1 + Number(calcProgram.roi_percent) / 100)) },
                 ].map((item) => (
@@ -525,7 +549,7 @@ export default function InvestmentPrograms({
                   onClick={() => setDetailOpen(false)}
                   className="shrink-0 rounded-lg p-2 text-slate-400 hover:text-white hover:bg-slate-800 transition"
                 >
-                  ✕
+                  âœ•
                 </button>
               </div>
               <div className="space-y-4 md:space-y-6">
@@ -569,12 +593,18 @@ export default function InvestmentPrograms({
                 </div>
 
                 <div className="pt-3 md:pt-4 border-t border-slate-700 flex gap-3">
-                  <button
-                    onClick={() => { setDetailOpen(false); openConfirm(detailProgram) }}
-                    className="flex-1 py-2.5 md:py-3 rounded-xl font-bold text-sm md:text-base text-white bg-gradient-to-r from-emerald-400 to-teal-600 hover:opacity-90 transition"
-                  >
-                    Invest now
-                  </button>
+<button
+                  onClick={() => { setDetailOpen(false); openConfirm(detailProgram) }}
+                  className="relative overflow-hidden flex-1 py-2.5 md:py-3 rounded-xl font-bold text-sm md:text-base text-white bg-gradient-to-r from-emerald-400 to-teal-600 hover:opacity-90 transition"
+                >
+                  <span className="relative z-10">Invest now</span>
+                  <motion.span
+                    initial={{ x: '-100%' }}
+                    whileHover={{ x: '100%' }}
+                    transition={{ duration: 0.4 }}
+                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent"
+                  />
+                </button>
                   <button
                     onClick={() => setDetailOpen(false)}
                     className="flex-1 py-2.5 md:py-3 rounded-xl font-bold text-sm md:text-base text-slate-300 border border-slate-700 bg-slate-900 hover:bg-slate-800 transition"
@@ -612,7 +642,7 @@ export default function InvestmentPrograms({
                   onClick={() => setConfirmOpen(false)}
                   className="rounded-lg p-2 text-slate-400 hover:text-white hover:bg-slate-800 transition"
                 >
-                  ✕
+                  âœ•
                 </button>
               </div>
 
@@ -653,7 +683,7 @@ export default function InvestmentPrograms({
                     className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 md:px-4 py-2.5 md:py-3 text-sm text-white outline-none focus:border-emerald-500"
                   />
                   <p className="mt-1 text-[10px] md:text-xs text-slate-500">
-                    Available: {money(availableBalance)} · Min: {money(confirmProgram.min_investment)} {confirmProgram.max_investment ? `· Max: ${money(confirmProgram.max_investment)}` : ''}
+                    Available: {money(availableBalance)} Â· Min: {money(confirmProgram.min_investment)} {confirmProgram.max_investment ? `Â· Max: ${money(confirmProgram.max_investment)}` : ''}
                   </p>
                 </div>
 
@@ -689,9 +719,15 @@ export default function InvestmentPrograms({
                 <button
                   type="submit"
                   disabled={confirming || !confirmAgreed}
-                  className="w-full py-2.5 md:py-3.5 rounded-xl font-bold text-sm md:text-base text-white transition disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-emerald-500/25 bg-gradient-to-r from-emerald-400 to-teal-600 hover:from-emerald-500 hover:to-teal-500"
+                  className="relative overflow-hidden w-full py-2.5 md:py-3.5 rounded-xl font-bold text-sm md:text-base text-white transition disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-emerald-500/25 bg-gradient-to-r from-emerald-400 to-teal-600 hover:from-emerald-500 hover:to-teal-500"
                 >
-                  {confirming ? 'Processing…' : 'Confirm investment'}
+                  <span className="relative z-10">{confirming ? 'Processingâ€¦' : 'Confirm investment'}</span>
+                  <motion.span
+                    initial={{ x: '-100%' }}
+                    whileHover={{ x: '100%' }}
+                    transition={{ duration: 0.4 }}
+                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent"
+                  />
                 </button>
               </form>
             </motion.div>
