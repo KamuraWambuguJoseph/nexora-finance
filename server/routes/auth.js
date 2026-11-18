@@ -2,7 +2,7 @@ import { Router } from 'express'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import crypto from 'crypto'
-import { z } from 'zod'
+import { sendVerificationEmail } from '../email.js'
 import rateLimit from 'express-rate-limit'
 import pool from '../db.js'
 import { verifyTOTP } from '../totp.js'
@@ -77,8 +77,8 @@ router.post('/signup', async (req, res) => {
     const membership_id = generateMembershipId()
 
     const result = await pool.query(
-      `INSERT INTO users (name, email, password_hash, membership_id, referral_code_used, preferred_currency, phone, country)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      `INSERT INTO users (name, email, password_hash, membership_id, referral_code_used, preferred_currency, phone, country, email_verified)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, false)
        RETURNING id, name, email, membership_id, preferred_currency, phone, country, created_at`,
       [name, email.toLowerCase(), hash, membership_id, referral_code?.toUpperCase() || null, preferred_currency, phone, country],
     )
@@ -95,10 +95,22 @@ router.post('/signup', async (req, res) => {
       )
     }
 
+    // Email verification token
+    const rawToken = crypto.randomBytes(32).toString('hex')
+    const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex')
+    const expires = new Date(Date.now() + 24 * 60 * 60 * 1000)
+    await pool.query(
+      `UPDATE users SET verify_token_hash = $1, verify_token_expires = $2 WHERE id = $3`,
+      [tokenHash, expires, user.id],
+    )
+    const clientOrigin = process.env.CLIENT_ORIGIN || 'http://localhost:5173'
+    const verifyLink = `${clientOrigin}/verify-email?email=${encodeURIComponent(email.toLowerCase())}&token=${rawToken}`
+    sendVerificationEmail(email.toLowerCase(), verifyLink).catch(() => {})
+
     res.status(201).json({
-      token: signToken(user),
-      user,
-      membership_id
+      needs_verification: true,
+      message: 'Account created. Check your email to verify your address before logging in.',
+      user: { id: user.id, name: user.name, email: user.email },
     })
   } catch (err) {
     const detail = err.errors ? err.errors.map((e) => e.message).join('; ') : err.message
@@ -112,6 +124,65 @@ const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 20,
   message: { error: 'Too many login attempts. Try again later.' },
+})
+
+// POST /api/auth/verify-email â€” confirm email with token
+const verifyEmailSchema = z.object({
+  email: z.string().email('Invalid email'),
+  token: z.string().min(10, 'Invalid token'),
+})
+
+router.post('/verify-email', async (req, res) => {
+  try {
+    const parsed = verifyEmailSchema.safeParse(req.body)
+    if (!parsed.success) return res.status(400).json({ error: parsed.error.issues[0].message })
+    const { email, token } = parsed.data
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex')
+    const result = await pool.query(
+      `SELECT id FROM users WHERE email = $1 AND verify_token_hash = $2 AND verify_token_expires > now()`,
+      [email.toLowerCase(), tokenHash],
+    )
+    if (result.rows.length === 0) {
+      return res.status(400).json({ error: 'Invalid or expired verification link.' })
+    }
+    await pool.query(
+      `UPDATE users SET email_verified = true, verify_token_hash = NULL, verify_token_expires = NULL WHERE id = $1`,
+      [result.rows[0].id],
+    )
+    res.json({ success: true, message: 'Email verified. You can now log in.' })
+  } catch (err) {
+    console.error('Verify email error:', err)
+    res.status(500).json({ error: 'Something went wrong.' })
+  }
+})
+
+// POST /api/auth/resend-verification
+router.post('/resend-verification', async (req, res) => {
+  try {
+    const parsed = z.object({ email: z.string().email() }).safeParse(req.body)
+    if (!parsed.success) return res.status(400).json({ error: parsed.error.issues[0].message })
+    const email = parsed.data.email.toLowerCase()
+    const result = await pool.query(
+      `SELECT id, email_verified FROM users WHERE email = $1`,
+      [email],
+    )
+    if (result.rows.length === 0) return res.json({ success: true })
+    if (result.rows[0].email_verified) return res.json({ success: true, already_verified: true })
+    const rawToken = crypto.randomBytes(32).toString('hex')
+    const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex')
+    const expires = new Date(Date.now() + 24 * 60 * 60 * 1000)
+    await pool.query(
+      `UPDATE users SET verify_token_hash = $1, verify_token_expires = $2 WHERE id = $3`,
+      [tokenHash, expires, result.rows[0].id],
+    )
+    const clientOrigin = process.env.CLIENT_ORIGIN || 'http://localhost:5173'
+    const verifyLink = `${clientOrigin}/verify-email?email=${encodeURIComponent(email)}&token=${rawToken}`
+    sendVerificationEmail(email, verifyLink).catch(() => {})
+    res.json({ success: true })
+  } catch (err) {
+    console.error('Resend verification error:', err)
+    res.status(500).json({ error: 'Something went wrong.' })
+  }
 })
 
 // POST /api/auth/login
@@ -129,9 +200,14 @@ router.post('/login', loginLimiter, async (req, res) => {
     )
     const user = result.rows[0]
 
-    // same message for both cases — don't leak which emails exist
+    // same message for both cases Ã¢â‚¬â€ don't leak which emails exist
     if (!user || !(await bcrypt.compare(password, user.password_hash))) {
       return res.status(401).json({ error: 'Invalid email or password.' })
+    }
+
+    // Require email verification before issuing a token
+    if (!user.email_verified) {
+      return res.status(403).json({ error: 'Please verify your email before logging in.', needs_verification: true })
     }
 
     // If 2FA is enabled, require a second step before issuing a token
@@ -153,7 +229,7 @@ router.post('/login', loginLimiter, async (req, res) => {
   }
 })
 
-// POST /api/auth/login/2fa — verify TOTP after password step
+// POST /api/auth/login/2fa Ã¢â‚¬â€ verify TOTP after password step
 const twoFactorSchema = z.object({
   email: z.string().email('Invalid email'),
   token: z.string().regex(/^\d{6}$/, 'Enter a 6-digit code'),
@@ -187,7 +263,7 @@ router.post('/login/2fa', async (req, res) => {
   }
 })
 
-// POST /api/auth/forgot-password — email a reset link
+// POST /api/auth/forgot-password Ã¢â‚¬â€ email a reset link
 const forgotSchema = z.object({
   email: z.string().email('Invalid email'),
 })
@@ -236,7 +312,7 @@ router.post('/forgot-password', resetLimiter, async (req, res) => {
   }
 })
 
-// POST /api/auth/reset-password — verify token and set a new password
+// POST /api/auth/reset-password Ã¢â‚¬â€ verify token and set a new password
 const resetSchema = z.object({
   email: z.string().email('Invalid email'),
   token: z.string().min(10, 'Invalid token'),

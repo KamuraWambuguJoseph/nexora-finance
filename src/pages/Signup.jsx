@@ -46,6 +46,12 @@ export default function Signup() {
           referral_code: form.referral_code || undefined
         },
       })
+      if (data.needs_verification) {
+        setError('')
+        alert('Account created! Check your email to verify your address before logging in.')
+        navigate('/login')
+        return
+      }
       setToken(data.token)
       setMembershipId(data.membership_id)
       // Show success message with membership ID

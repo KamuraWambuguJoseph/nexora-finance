@@ -8,7 +8,7 @@ export default function Login() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [twoFactor, setTwoFactor] = useState(null) // { email } when challenge required
-  const [code, setCode] = useState('')
+  const [needsVerification, setNeedsVerification] = useState(false)
 
   const onChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value })
@@ -36,6 +36,9 @@ export default function Login() {
       }
       finish(data)
     } catch (err) {
+      if (err.message && err.message.includes('verify your email')) {
+        setNeedsVerification(true)
+      }
       setError(err.message)
     } finally {
       setLoading(false)
@@ -104,20 +107,36 @@ export default function Login() {
             </div>
 
             {error && <p className="text-red-400 text-sm">{error}</p>}
+            {needsVerification && (
+              <button
+                type="button"
+                onClick={async () => {
+                  try {
+                    await api('/api/auth/resend-verification', { method: 'POST', body: { email: form.email } })
+                    setError('Verification email sent. Check your inbox.')
+                  } catch (e) {
+                    setError(e.message)
+                  }
+                }}
+                className="text-sm text-indigo-400 hover:underline"
+              >
+                Resend verification email
+              </button>
+            )}
 
             <button
               type="submit"
               disabled={loading}
               className="w-full py-2.5 rounded-lg bg-indigo-500 hover:bg-indigo-400 disabled:opacity-50 font-medium transition"
             >
-              {loading ? 'Verifying…' : 'Verify & sign in'}
+              {loading ? 'Verifyingâ€¦' : 'Verify & sign in'}
             </button>
             <button
               type="button"
               onClick={() => { setTwoFactor(null); setCode(''); setError('') }}
               className="w-full text-sm text-slate-400 hover:text-white transition"
             >
-              ← Back
+              â† Back
             </button>
           </form>
         ) : (
@@ -141,7 +160,7 @@ export default function Login() {
                 value={form.password}
                 onChange={onChange}
                 className="w-full rounded-lg bg-slate-800 border border-slate-700 px-3 py-2 outline-none focus:border-indigo-500"
-                placeholder="••••••••"
+                placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
               />
               <div className="mt-1 text-right">
                 <Link to="/forgot-password" className="text-xs text-indigo-400 hover:underline">
@@ -157,7 +176,7 @@ export default function Login() {
               disabled={loading}
               className="w-full py-2.5 rounded-lg bg-indigo-500 hover:bg-indigo-400 disabled:opacity-50 font-medium transition"
             >
-              {loading ? 'Signing in…' : 'Sign in'}
+              {loading ? 'Signing inâ€¦' : 'Sign in'}
             </button>
           </form>
         )}
