@@ -81,6 +81,7 @@ export default function Dashboard() {
   const [showPending, setShowPending] = useState(false)
   const [showWithdrawalHistory, setShowWithdrawalHistory] = useState(false)
   const [showDepositHistory, setShowDepositHistory] = useState(false)
+  const [referralCode, setReferralCode] = useState(null)
   const [referralStats, setReferralStats] = useState(null)
   const [referralHistory, setReferralHistory] = useState([])
   const [showInvestmentHistory, setShowInvestmentHistory] = useState(false)
