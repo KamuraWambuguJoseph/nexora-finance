@@ -1,9 +1,10 @@
-import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { api, setToken } from '../lib/api.js'
 
 export default function Signup() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const [form, setForm] = useState({
     name: '',
     email: '',
@@ -11,7 +12,7 @@ export default function Signup() {
     country: '',
     password: '',
     confirm: '',
-    referral_code: ''
+    referral_code: searchParams.get('ref') || ''
   })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)

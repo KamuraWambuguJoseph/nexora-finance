@@ -8,7 +8,7 @@ export default function Referral() {
   const [stats, setStats] = useState(null)
   const [history, setHistory] = useState([])
   const [copied, setCopied] = useState(false)
-  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
   useEffect(() => {
     if (!getToken()) {
@@ -18,19 +18,17 @@ export default function Referral() {
 
     const fetchData = async () => {
       try {
-        // Get referral code
         const codeRes = await api('/api/referrals/my-code', { auth: true })
-        setReferralCode(codeRes.referral_code.code)
+        setReferralCode(codeRes?.referral_code?.code || null)
 
-        // Get stats
         const statsRes = await api('/api/referrals/stats', { auth: true })
         setStats(statsRes)
 
-        // Get history
         const historyRes = await api('/api/referrals/history', { auth: true })
-        setHistory(historyRes.referrals)
+        setHistory(historyRes?.referrals || [])
       } catch (err) {
         console.error('Error loading referral data:', err)
+        setError(err.message || 'Failed to load referral data')
       } finally {
         setLoading(false)
       }
@@ -53,6 +51,15 @@ export default function Referral() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen gap-4 text-white">
+        <p className="text-red-400">{error}</p>
+        <button onClick={() => window.location.reload()} className="px-4 py-2 rounded-lg bg-emerald-600 text-white">Retry</button>
       </div>
     )
   }
