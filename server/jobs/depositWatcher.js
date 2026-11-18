@@ -144,6 +144,19 @@ async function scanPending() {
           `UPDATE deposits SET tx_hash = $1, amount = $2 WHERE id = $3 AND tx_hash IS NULL`,
           [match.hash, match.amount, dep.id]
         )
+        // Process referral commission now that amount is known
+        try {
+          const refRes = await pool.query('SELECT referrer_id FROM referrals WHERE referred_user_id = (SELECT user_id FROM deposits WHERE id = $1)', [dep.id])
+          if (refRes.rows.length) {
+            const commission_amount = (match.amount * 3.0) / 100
+            if (commission_amount > 0) {
+              await pool.query(
+                `INSERT INTO referral_commissions (referrer_id, deposit_id, commission_amount, commission_rate) VALUES ($1, $2, $3, 3.00)`,
+                [refRes.rows[0].referrer_id, dep.id, commission_amount]
+              )
+            }
+          }
+        } catch (e) { console.error('Watcher commission error:', e.message) }
         console.log(`Watcher: deposit #${dep.id} auto-detected tx ${match.hash} amount ${match.amount}`)
       }
     }

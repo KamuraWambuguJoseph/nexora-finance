@@ -78,14 +78,25 @@ router.post('/', auth, async (req, res) => {
       [req.user.id, asset, network, amount, method.address, tx_hash || null, 'pending'],
     )
 
-    // Process referral commission if user was referred
+    // Process referral commission if the depositor was referred (in-process, no self-HTTP)
     const depositId = result.rows[0].id
     try {
-      await fetch('http://localhost:4000/api/referrals/process-commissions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ deposit_id: depositId }),
-      }).catch(() => {})
+      const refRes = await pool.query(
+        'SELECT referrer_id FROM referrals WHERE referred_user_id = $1',
+        [req.user.id],
+      )
+      if (refRes.rows.length > 0) {
+        const referrer_id = refRes.rows[0].referrer_id
+        const commission_rate = 3.0
+        const commission_amount = (Number(amount) * commission_rate) / 100
+        if (commission_amount > 0) {
+          await pool.query(
+            `INSERT INTO referral_commissions (referrer_id, deposit_id, commission_amount, commission_rate)
+             VALUES ($1, $2, $3, $4)`,
+            [referrer_id, depositId, commission_amount, commission_rate],
+          )
+        }
+      }
     } catch (err) {
       console.error('Commission processing error (non-fatal):', err)
     }
