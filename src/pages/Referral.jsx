@@ -90,12 +90,12 @@ export default function Referral() {
 
           <div className="bg-gradient-to-br from-yellow-600 to-yellow-700 rounded-lg p-6 text-white shadow-lg">
             <div className="text-sm opacity-90">Pending Commission</div>
-            <div className="text-4xl font-bold mt-2">${(stats?.commission_pending || 0).toFixed(2)}</div>
+            <div className="text-4xl font-bold mt-2">${Number(stats?.commission_pending || 0).toFixed(2)}</div>
           </div>
 
           <div className="bg-gradient-to-br from-green-600 to-green-700 rounded-lg p-6 text-white shadow-lg">
             <div className="text-sm opacity-90">Credited Commission</div>
-            <div className="text-4xl font-bold mt-2">${(stats?.commission_credited || 0).toFixed(2)}</div>
+            <div className="text-4xl font-bold mt-2">${Number(stats?.commission_credited || 0).toFixed(2)}</div>
           </div>
         </div>
 
@@ -156,10 +156,10 @@ export default function Referral() {
                         {new Date(ref.referred_at).toLocaleDateString()}
                       </td>
                       <td className="py-4 px-4 text-right text-yellow-400 font-semibold">
-                        ${(ref.pending_commission || 0).toFixed(2)}
+                        ${Number(ref.pending_commission || 0).toFixed(2)}
                       </td>
                       <td className="py-4 px-4 text-right text-green-400 font-semibold">
-                        ${(ref.credited_commission || 0).toFixed(2)}
+                        ${Number(ref.credited_commission || 0).toFixed(2)}
                       </td>
                     </tr>
                   ))}

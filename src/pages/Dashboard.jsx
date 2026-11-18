@@ -826,11 +826,11 @@ export default function Dashboard() {
               </div>
               <div className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
                 <div className="text-sm text-slate-400">Pending Commission</div>
-                <div className="text-3xl font-bold mt-1 text-yellow-400">${(referralStats?.commission_pending || 0).toFixed(2)}</div>
+                <div className="text-3xl font-bold mt-1 text-yellow-400">${Number(referralStats?.commission_pending || 0).toFixed(2)}</div>
               </div>
               <div className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
                 <div className="text-sm text-slate-400">Credited Commission</div>
-                <div className="text-3xl font-bold mt-1 text-emerald-400">${(referralStats?.commission_credited || 0).toFixed(2)}</div>
+                <div className="text-3xl font-bold mt-1 text-emerald-400">${Number(referralStats?.commission_credited || 0).toFixed(2)}</div>
               </div>
             </div>
 
@@ -863,8 +863,8 @@ export default function Dashboard() {
                         <p className="text-xs text-slate-500">{r.email} · {new Date(r.referred_at).toLocaleDateString()}</p>
                       </div>
                       <div className="text-right text-sm">
-                        <p className="text-yellow-400">Pending ${(r.pending_commission || 0).toFixed(2)}</p>
-                        <p className="text-emerald-400">Credited ${(r.credited_commission || 0).toFixed(2)}</p>
+                        <p className="text-yellow-400">Pending ${Number(r.pending_commission || 0).toFixed(2)}</p>
+                        <p className="text-emerald-400">Credited ${Number(r.credited_commission || 0).toFixed(2)}</p>
                       </div>
                     </li>
                   ))}
