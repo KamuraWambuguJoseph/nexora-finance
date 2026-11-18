@@ -105,10 +105,10 @@ export default function SettingsMenu({ inline = false }) {
 
             {/* Referral Button */}
             <button
-              onClick={() => {
-                navigate('/referral')
-                setIsOpen(false)
-              }}
+               onClick={() => {
+                 navigate('/dashboard?tab=referral')
+                 setIsOpen(false)
+               }}
               className={`w-full px-4 py-3 text-left flex items-center gap-3 transition ${
                 isDark
                   ? 'hover:bg-slate-700 text-slate-200'
