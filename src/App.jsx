@@ -16,6 +16,7 @@ import About from './pages/About.jsx'
 import Support from './pages/Support.jsx'
 import Legal from './pages/Legal.jsx'
 import NotFound from './pages/NotFound.jsx'
+import LanguageSelector from './components/LanguageSelector.jsx'
 import ErrorBoundary from './components/ErrorBoundary.jsx'
 import SettingsMenu from './components/SettingsMenu.jsx'
 
