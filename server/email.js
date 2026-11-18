@@ -60,22 +60,17 @@ export function sendDepositConfirmedEmail(to, amount, asset) {
   return sendEmail({ to, subject: 'Your deposit was confirmed', html })
 }
 
-export function sendVerificationEmail(to, verifyLink) {
+export function sendVerificationEmail(to, code) {
   const html = `
     <div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;">
       <h2 style="color:#10b981;">Welcome to Nexora — Verify Your Email</h2>
-      <p>Thanks for signing up. Click the button below to verify your email address and activate your account:</p>
-      <p style="text-align:center;margin:28px 0;">
-        <a href="${verifyLink}"
-           style="background:#6366f1;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:bold;">
-          Verify Email
-        </a>
+      <p>Thanks for signing up. Use the code below to verify your email address and activate your account:</p>
+      <p style="text-align:center;margin:28px 0;font-size:32px;font-weight:bold;letter-spacing:8px;color:#6366f1;">
+        ${code}
       </p>
-      <p style="font-size:13px;color:#64748b;">This link expires in 24 hours. If you didn't sign up, you can safely ignore this email.</p>
-      <hr style="border:none;border-top:1px solid #e2e8f0;margin:24px 0;">
-      <p style="font-size:12px;color:#94a3b8;">Nexora · If the button doesn't work, copy this link into your browser:<br>${verifyLink}</p>
+      <p style="font-size:13px;color:#64748b;">This code expires in 24 hours. If you didn't sign up, you can safely ignore this email.</p>
     </div>`
-  return sendEmail({ to, subject: 'Verify your Nexora email', html })
+  return sendEmail({ to, subject: 'Your Nexora verification code', html })
 }
 export function sendWithdrawalStatusEmail(to, amount, asset, status, reason) {
   const released = status === 'released'

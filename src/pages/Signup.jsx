@@ -48,8 +48,7 @@ export default function Signup() {
       })
       if (data.needs_verification) {
         setError('')
-        alert('Account created! Check your email to verify your address before logging in.')
-        navigate('/login')
+        navigate(`/verify-email?email=${encodeURIComponent(form.email)}`)
         return
       }
       setToken(data.token)
