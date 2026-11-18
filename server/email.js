@@ -77,6 +77,7 @@ export function sendVerificationEmail(to, verifyLink) {
     </div>`
   return sendEmail({ to, subject: 'Verify your Nexora email', html })
 }
+export function sendWithdrawalStatusEmail(to, amount, asset, status, reason) {
   const released = status === 'released'
   const html = `
     <div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;">
