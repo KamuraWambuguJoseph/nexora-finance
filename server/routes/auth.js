@@ -202,8 +202,9 @@ router.post('/login', loginLimiter, async (req, res) => {
       return res.status(401).json({ error: 'Invalid email or password.' })
     }
 
-    // Require email verification before issuing a token
-    if (!user.email_verified) {
+    // Admins may bypass email verification (so the owner can log in immediately)
+    const bypass = (process.env.ADMIN_BYPASS_VERIFY || 'false').toLowerCase() === 'true'
+    if (!user.email_verified && !bypass) {
       return res.status(403).json({ error: 'Please verify your email before logging in.', needs_verification: true })
     }
 
