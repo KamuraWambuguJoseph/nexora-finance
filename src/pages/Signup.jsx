@@ -48,6 +48,7 @@ export default function Signup() {
       })
       if (data.needs_verification) {
         setError('')
+        window.open(`mailto:${form.email}`, '_blank')
         navigate(`/verify-email?email=${encodeURIComponent(form.email)}`)
         return
       }
