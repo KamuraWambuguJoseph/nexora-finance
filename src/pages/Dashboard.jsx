@@ -80,7 +80,9 @@ export default function Dashboard() {
   // collapsible withdrawal panels
   const [showPending, setShowPending] = useState(false)
   const [showWithdrawalHistory, setShowWithdrawalHistory] = useState(false)
-  const [showDepositHistory, setShowDepositHistory] = useState(false)
+  const [referralCode, setReferralCode] = useState(null)
+  const [referralStats, setReferralStats] = useState(null)
+  const [referralHistory, setReferralHistory] = useState([])
   const [showInvestmentHistory, setShowInvestmentHistory] = useState(false)
 
   // withdrawal celebration popup
@@ -120,6 +122,20 @@ export default function Dashboard() {
       setDeposits(deps.deposits)
       setInvestments(invs.investments)
       setPrograms(progs.programs || [])
+
+      // Load referrals (non-blocking)
+      try {
+        const [codeRes, statsRes, histRes] = await Promise.all([
+          api('/api/referrals/my-code', { auth: true }),
+          api('/api/referrals/stats', { auth: true }),
+          api('/api/referrals/history', { auth: true }),
+        ])
+        setReferralCode(codeRes?.referral_code?.code || null)
+        setReferralStats(statsRes)
+        setReferralHistory(histRes?.referrals || [])
+      } catch (e) {
+        console.log('Referrals not available yet')
+      }
 
       // Load withdrawals separately to avoid blocking if endpoint has issues
       try {
@@ -802,26 +818,58 @@ export default function Dashboard() {
 
         {/* ============ REFERRAL ============ */}
         {tab === 'referral' && (
-          <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
-            <div className="mb-8 flex items-center justify-between">
-              <div>
-                <h2 className="text-2xl font-bold">🔗 Referral Program</h2>
-                <p className="mt-1 text-sm text-slate-400">Earn 3% commission on every deposit your referrals make</p>
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
+                <div className="text-sm text-slate-400">Total Referrals</div>
+                <div className="text-3xl font-bold mt-1">{referralStats?.total_referrals || 0}</div>
               </div>
-              <button
-                onClick={() => navigate('/referral')}
-                className="rounded-lg bg-emerald-600 px-4 py-2 font-semibold text-white transition hover:bg-emerald-700"
-              >
-                View Full Dashboard →
-              </button>
+              <div className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
+                <div className="text-sm text-slate-400">Pending Commission</div>
+                <div className="text-3xl font-bold mt-1 text-yellow-400">${(referralStats?.commission_pending || 0).toFixed(2)}</div>
+              </div>
+              <div className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
+                <div className="text-sm text-slate-400">Credited Commission</div>
+                <div className="text-3xl font-bold mt-1 text-emerald-400">${(referralStats?.commission_credited || 0).toFixed(2)}</div>
+              </div>
             </div>
-            <div className="rounded-lg bg-slate-800 p-4 text-center border-2 border-dashed border-slate-700">
-              <p className="text-slate-400">Click the button above to access your complete referral dashboard with:</p>
-              <ul className="mt-3 space-y-2 text-sm text-slate-400">
-                <li>✓ Your unique referral code & shareable link</li>
-                <li>✓ Commission tracking and stats</li>
-                <li>✓ Complete referral history</li>
-              </ul>
+
+            <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
+              <h2 className="text-xl font-bold mb-3">Your Referral Code</h2>
+              <div className="flex items-center gap-3 flex-wrap">
+                <code className="text-2xl font-mono font-bold text-emerald-400">{referralCode || '—'}</code>
+                <button
+                  onClick={() => { if (referralCode) { navigator.clipboard.writeText(referralCode); setNotice('Copied!') } }}
+                  className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
+                >
+                  Copy
+                </button>
+              </div>
+              <p className="mt-3 text-sm text-slate-400 break-all">
+                Share link: {window.location.origin}/signup?ref={referralCode}
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
+              <h2 className="text-xl font-bold mb-3">Who Joined Using Your Link</h2>
+              {referralHistory.length === 0 ? (
+                <p className="text-sm text-slate-400">No referrals yet. Share your code/link to get started.</p>
+              ) : (
+                <ul className="divide-y divide-slate-800">
+                  {referralHistory.map((r) => (
+                    <li key={r.id} className="py-3 flex items-center justify-between gap-3">
+                      <div>
+                        <p className="font-medium">{r.name}</p>
+                        <p className="text-xs text-slate-500">{r.email} · {new Date(r.referred_at).toLocaleDateString()}</p>
+                      </div>
+                      <div className="text-right text-sm">
+                        <p className="text-yellow-400">Pending ${(r.pending_commission || 0).toFixed(2)}</p>
+                        <p className="text-emerald-400">Credited ${(r.credited_commission || 0).toFixed(2)}</p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
           </div>
         )}
