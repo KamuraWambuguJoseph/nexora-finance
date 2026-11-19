@@ -9,14 +9,14 @@ const router = Router()
 // wallet_address MUST match the QR codes shown on the deposit page.
 const WALLETS = {
   BTC: [
-    { network: 'Bitcoin (BTC)', address: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh' },
+    { network: 'Bitcoin (BTC)', address: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh', qr: 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=bitcoin:bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh' },
   ],
   ETH: [
-    { network: 'Ethereum (ERC20)', address: '0x71C7656EC7ab88b098defB751B7401B5f6d8976F' },
+    { network: 'Ethereum (ERC20)', address: '0x71C7656EC7ab88b098defB751B7401B5f6d8976F', qr: 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=0x71C7656EC7ab88b098defB751B7401B5f6d8976F' },
   ],
   USDT: [
-    { network: 'Tron (TRC20)', address: 'TQn9Y2khDD95J42FQtQTdwVVRZqiTqJoUB' },
-    { network: 'Ethereum (ERC20)', address: '0x71C7656EC7ab88b098defB751B7401B5f6d8976F' },
+    { network: 'Tron (TRC20)', address: 'TCiM8LQ321Et6jocFVWuAkp7U8UNU9rCQA', qr: 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=tron:TCiM8LQ321Et6jocFVWuAkp7U8UNU9rCQA' },
+    { network: 'Ethereum (ERC20)', address: '0xe2C8B7f619c3F4f51b390CCE6623c4E8a940A285', qr: 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=0xe2C8B7f619c3F4f51b390CCE6623c4E8a940A285' },
   ],
 }
 
