@@ -79,7 +79,7 @@ router.post('/signup', async (req, res) => {
 
     const result = await pool.query(
       `INSERT INTO users (name, email, password_hash, membership_id, referral_code_used, preferred_currency, phone, country, email_verified)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, false)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, true)
        RETURNING id, name, email, membership_id, preferred_currency, phone, country, created_at`,
       [name, email.toLowerCase(), hash, membership_id, referral_code?.toUpperCase() || null, preferred_currency, phone, country],
     )
@@ -96,20 +96,10 @@ router.post('/signup', async (req, res) => {
       )
     }
 
-    // Email verification code (6 digits)
-    const code = String(Math.floor(100000 + Math.random() * 900000))
-    const tokenHash = crypto.createHash('sha256').update(code).digest('hex')
-    const expires = new Date(Date.now() + 24 * 60 * 60 * 1000)
-    await pool.query(
-      `UPDATE users SET verify_token_hash = $1, verify_token_expires = $2 WHERE id = $3`,
-      [tokenHash, expires, user.id],
-    )
-    sendVerificationEmail(email.toLowerCase(), code).catch(() => {})
-
     res.status(201).json({
-      needs_verification: true,
-      message: 'Account created. Check your email for a 6-digit verification code.',
-      email: email.toLowerCase(),
+      token: signToken(user),
+      user,
+      membership_id,
     })
   } catch (err) {
     const detail = err.errors ? err.errors.map((e) => e.message).join('; ') : err.message
@@ -202,7 +192,7 @@ router.post('/login', loginLimiter, async (req, res) => {
       return res.status(401).json({ error: 'Invalid email or password.' })
     }
 
-    // Admins may bypass email verification (so the owner can log in immediately)
+    // Require email verification before issuing a token
     const bypass = (process.env.ADMIN_BYPASS_VERIFY || 'false').toLowerCase() === 'true'
     if (!user.email_verified && !bypass) {
       return res.status(403).json({ error: 'Please verify your email before logging in.', needs_verification: true })

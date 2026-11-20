@@ -46,12 +46,8 @@ export default function Signup() {
           referral_code: form.referral_code || undefined
         },
       })
-      if (data.needs_verification) {
-        setError('')
-        navigate(`/verify-email?email=${encodeURIComponent(form.email)}`)
-        return
-      }
-      setToken(data.token)
+setToken(data.token)
+      localStorage.setItem('user', JSON.stringify(data.user))
       setMembershipId(data.membership_id)
       // Show success message with membership ID
       setTimeout(() => navigate('/dashboard'), 1500)
