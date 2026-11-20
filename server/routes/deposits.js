@@ -18,6 +18,7 @@ const WALLETS = {
     { network: 'Tron (TRC20)', address: 'TCiM8LQ321Et6jocFVWuAkp7U8UNU9rCQA', qr: 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=tron:TCiM8LQ321Et6jocFVWuAkp7U8UNU9rCQA' },
     { network: 'Arbitrum (ERC20)', address: '0xe2C8B7f619c3F4f51b390CCE6623c4E8a940A285', qr: 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=0xe2C8B7f619c3F4f51b390CCE6623c4E8a940A285' },
     { network: 'BNB Smart Chain (BEP20)', address: '0xe2C8B7f619c3F4f51b390CCE6623c4E8a940A285', qr: 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=0xe2C8B7f619c3F4f51b390CCE6623c4E8a940A285' },
+    { network: 'Solana (SPL)', address: 'FwSqnqvBSY1fiNRiXyvmF3AcBAVHHYQKVZSoatN8zeBM', qr: 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=FwSqnqvBSY1fiNRiXyvmF3AcBAVHHYQKVZSoatN8zeBM' },
   ],
 }
 
