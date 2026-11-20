@@ -8,29 +8,38 @@ import qrBtc from '../assets/payments/qr-btc.jpg'
 import qrEth from '../assets/payments/qr-eth.jpg'
 import qrUsdtTron from '../assets/payments/qr-usdt-tron.jpg'
 import qrUsdtEth from '../assets/payments/qr-usdt-eth.jpg'
+import qrUsdtArbitrum from '../assets/payments/qr-4.jpg'
 import qrBnb from '../assets/payments/qr-bnb.jpg'
 import qrSolana from '../assets/payments/qr-solana.jpg'
+import iconBtc from '../assets/payments/icon-btc.png'
+import iconEth from '../assets/payments/icon-eth.png'
+import iconUsdtTron from '../assets/payments/icon-usdt-tron.png'
+import iconUsdtEth from '../assets/payments/icon-usdt-eth.png'
+import iconUsdtArbitrum from '../assets/payments/icon-usdt-arbitrum.png'
+import iconBnb from '../assets/payments/icon-bnb.png'
+import iconSol from '../assets/payments/icon-sol.png'
 
 const money = (n) =>
   Number(n).toLocaleString('en-US', { style: 'currency', currency: 'USD' })
 
-// Wallet addresses — each paired with the matching deposit QR code image
+// Wallet addresses — each paired with the matching deposit QR code image and network icon
 const WALLETS = {
   BTC: [
-    { network: 'Bitcoin (BTC)', address: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh', qr: qrBtc },
+    { network: 'Bitcoin (BTC)', address: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh', qr: qrBtc, icon: iconBtc },
   ],
   ETH: [
-    { network: 'Ethereum (ERC20)', address: '0x71C7656EC7ab88b098defB751B7401B5f6d8976F', qr: qrEth },
+    { network: 'Ethereum (ERC20)', address: '0xe2C8B7f619c3F4f51b390CCE6623c4E8a940A285', qr: qrEth, icon: iconEth },
   ],
   USDT: [
-    { network: 'Tron (TRC20)', address: 'TQn9Y2khDD95J42FQtQTdwVVRZqiTqJoUB', qr: qrUsdtTron },
-    { network: 'Ethereum (ERC20)', address: '0x71C7656EC7ab88b098defB751B7401B5f6d8976F', qr: qrUsdtEth },
+    { network: 'Tron (TRC20)', address: 'TCiM8LQ321Et6jocFVWuAkp7U8UNU9rCQA', qr: qrUsdtTron, icon: iconUsdtTron },
+    { network: 'Ethereum (ERC20)', address: '0xe2C8B7f619c3F4f51b390CCE6623c4E8a940A285', qr: qrUsdtEth, icon: iconUsdtEth },
+    { network: 'Arbitrum (ERC20)', address: '0xe2C8B7f619c3F4f51b390CCE6623c4E8a940A285', qr: qrUsdtArbitrum, icon: iconUsdtArbitrum },
   ],
   BNB: [
-    { network: 'BNB Smart Chain (BEP20)', address: '0xe2C8B7f619c3F4f51b390CCE6623c4E8a940A285', qr: qrBnb },
+    { network: 'BNB Smart Chain (BEP20)', address: '0xe2C8B7f619c3F4f51b390CCE6623c4E8a940A285', qr: qrBnb, icon: iconBnb },
   ],
   SOL: [
-    { network: 'Solana (SOL)', address: 'FwSqnqvBSY1fiNRiXyvmF3AcBAVHHYQKVZSoatN8zeBM', qr: qrSolana },
+    { network: 'Solana (SOL)', address: 'FwSqnqvBSY1fiNRiXyvmF3AcBAVHHYQKVZSoatN8zeBM', qr: qrSolana, icon: iconSol },
   ],
 }
 
@@ -505,27 +514,29 @@ export default function Dashboard() {
                       setAsset(a)
                       setNetwork(WALLETS[a][0].network)
                     }}
-                    className={`rounded-xl border px-3 py-2.5 text-sm font-semibold transition
+                    className={`flex flex-col items-center gap-1.5 rounded-xl border px-3 py-2.5 text-sm font-semibold transition
                       ${asset === a
                         ? 'border-emerald-500 bg-emerald-500/10 text-emerald-400'
                         : 'border-slate-700 text-slate-300 hover:border-slate-500'}`}
                   >
-                    {a}
+                    <img src={WALLETS[a][0].icon} alt={a} className="h-7 w-7" />
+                    <span>{a}</span>
                   </button>
                 ))}
               </div>
 
               {WALLETS[asset].length > 1 && (
-                <div className="mb-4 flex gap-2">
+                <div className="mb-4 flex flex-wrap gap-2">
                   {WALLETS[asset].map((w) => (
                     <button
                       key={w.network}
                       onClick={() => setNetwork(w.network)}
-                      className={`rounded-lg border px-3 py-1.5 text-xs transition
+                      className={`flex items-center gap-2 rounded-lg border px-3 py-1.5 text-xs transition
                         ${network === w.network
                           ? 'border-emerald-500 text-emerald-400'
                           : 'border-slate-700 text-slate-400 hover:border-slate-500'}`}
                     >
+                      <img src={w.icon} alt={w.network} className="h-4 w-4" />
                       {w.network}
                     </button>
                   ))}
