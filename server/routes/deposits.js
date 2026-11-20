@@ -9,16 +9,16 @@ const router = Router()
 // wallet_address MUST match the QR codes shown on the deposit page.
 const WALLETS = {
   BTC: [
-    { network: 'Bitcoin (BTC)', address: 'bc1quwdd2hpugxyfadec9g37j8tyn8s5l04ytqswhc', qr: 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=bitcoin:bc1quwdd2hpugxyfadec9g37j8tyn8s5l04ytqswhc' },
+    { network: 'Bitcoin (BTC)', address: 'bc1quwdd2hpugxyfadec9g37j8tyn8s5l04ytqswhc', qr: 'https://quickchart.io/qr?text=bitcoin:bc1quwdd2hpugxyfadec9g37j8tyn8s5l04ytqswhc' },
   ],
   ETH: [
-    { network: 'Ethereum (ERC20)', address: '0xe2C8B7f619c3F4f51b390CCE6623c4E8a940A285', qr: 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=0xe2C8B7f619c3F4f51b390CCE6623c4E8a940A285' },
+    { network: 'Ethereum (ERC20)', address: '0xe2C8B7f619c3F4f51b390CCE6623c4E8a940A285', qr: 'https://quickchart.io/qr?text=0xe2C8B7f619c3F4f51b390CCE6623c4E8a940A285' },
   ],
   USDT: [
-    { network: 'Tron (TRC20)', address: 'TCiM8LQ321Et6jocFVWuAkp7U8UNU9rCQA', qr: 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=tron:TCiM8LQ321Et6jocFVWuAkp7U8UNU9rCQA' },
-    { network: 'Arbitrum (ERC20)', address: '0xe2C8B7f619c3F4f51b390CCE6623c4E8a940A285', qr: 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=0xe2C8B7f619c3F4f51b390CCE6623c4E8a940A285' },
-    { network: 'BNB Smart Chain (BEP20)', address: '0xe2C8B7f619c3F4f51b390CCE6623c4E8a940A285', qr: 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=0xe2C8B7f619c3F4f51b390CCE6623c4E8a940A285' },
-    { network: 'Solana (SPL)', address: 'FwSqnqvBSY1fiNRiXyvmF3AcBAVHHYQKVZSoatN8zeBM', qr: 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=FwSqnqvBSY1fiNRiXyvmF3AcBAVHHYQKVZSoatN8zeBM' },
+    { network: 'Tron (TRC20)', address: 'TCiM8LQ321Et6jocFVWuAkp7U8UNU9rCQA', qr: 'https://quickchart.io/qr?text=tron:TCiM8LQ321Et6jocFVWuAkp7U8UNU9rCQA' },
+    { network: 'Arbitrum (ERC20)', address: '0xe2C8B7f619c3F4f51b390CCE6623c4E8a940A285', qr: 'https://quickchart.io/qr?text=0xe2C8B7f619c3F4f51b390CCE6623c4E8a940A285' },
+    { network: 'BNB Smart Chain (BEP20)', address: '0xe2C8B7f619c3F4f51b390CCE6623c4E8a940A285', qr: 'https://quickchart.io/qr?text=0xe2C8B7f619c3F4f51b390CCE6623c4E8a940A285' },
+    { network: 'Solana (SPL)', address: 'FwSqnqvBSY1fiNRiXyvmF3AcBAVHHYQKVZSoatN8zeBM', qr: 'https://quickchart.io/qr?text=FwSqnqvBSY1fiNRiXyvmF3AcBAVHHYQKVZSoatN8zeBM' },
   ],
 }
 
@@ -34,7 +34,7 @@ const depositSchema = z.object({
   tx_hash: z.string().min(10, 'Transaction hash is required').max(190).optional(),
 })
 
-// GET /api/deposits — current user's deposit history
+// GET /api/deposits â€” current user's deposit history
 router.get('/', auth, async (req, res) => {
   try {
     const result = await pool.query(
@@ -49,7 +49,7 @@ router.get('/', auth, async (req, res) => {
   }
 })
 
-// POST /api/deposits — user submits a deposit with tx hash proof (auto-confirmed)
+// POST /api/deposits â€” user submits a deposit with tx hash proof (auto-confirmed)
 router.post('/', auth, async (req, res) => {
   try {
     const parsed = depositSchema.safeParse(req.body)
@@ -107,7 +107,7 @@ router.post('/', auth, async (req, res) => {
       deposit: result.rows[0],
       message: tx_hash
         ? 'Deposit submitted. Admin will review and confirm it shortly.'
-        : 'Deposit registered. We are scanning the blockchain for your transaction — this page updates automatically.',
+        : 'Deposit registered. We are scanning the blockchain for your transaction â€” this page updates automatically.',
     })
   } catch (err) {
     console.error('Create deposit error:', err)
