@@ -9,7 +9,7 @@ const router = Router()
 // wallet_address MUST match the QR codes shown on the deposit page.
 const WALLETS = {
   BTC: [
-    { network: 'Bitcoin (BTC)', address: 'bc1quwdd2hpugxyfadec9g37j8tyn8s5l04ytqswh', qr: 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=bitcoin:bc1quwdd2hpugxyfadec9g37j8tyn8s5l04ytqswh' },
+    { network: 'Bitcoin (BTC)', address: 'bc1quwdd2hpugxyfadec9g37j8tyn8s5l04ytqswhc', qr: 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=bitcoin:bc1quwdd2hpugxyfadec9g37j8tyn8s5l04ytqswhc' },
   ],
   ETH: [
     { network: 'Ethereum (ERC20)', address: '0xe2C8B7f619c3F4f51b390CCE6623c4E8a940A285', qr: 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=0xe2C8B7f619c3F4f51b390CCE6623c4E8a940A285' },
